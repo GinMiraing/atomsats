@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  :root {
+    --theme: #fb7185;
+    --theme-hover: #fda4af;
+    --border: #e2e8f0;
+    --background-primary: #fff;
+    --background-secondary: #f2f4f7;
+    --font-primary: #0f051d;
+    --font-secondary: #475467;
+  }
+
+  .dark {
+    --theme: #fb7185;
+    --theme-hover: #fda4af;
+    --border: #e2e8f0;
+    --background-primary: #252429;
+    --background-secondary: #35343a;
+    --font-primary: #fff;
+    --font-secondary: #b0b0b0;
+  }
+}

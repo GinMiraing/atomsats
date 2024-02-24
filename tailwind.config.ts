@@ -1,0 +1,28 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: ["./app/**/*.{js,ts,jsx,tsx,mdx}"],
+  theme: {
+    extend: {
+      colors: {
+        theme: {
+          DEFAULT: "var(--theme)",
+          hover: "var(--theme-hover)",
+        },
+      },
+      borderColor: {
+        DEFAULT: "var(--border)",
+      },
+      backgroundColor: {
+        primary: "var(--background-primary)",
+        secondary: "var(--background-secondary)",
+      },
+      textColor: {
+        primary: "var(--font-primary)",
+        secondary: "var(--font-secondary)",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+};
+export default config;
