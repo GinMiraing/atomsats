@@ -10,6 +10,7 @@ export type AtomicalPreviewItem = {
   atomical_number: number;
   type: "FT" | "NFT";
   subtype: string;
+  timestamp: number;
   realm?: string;
   ticker?: string;
   container?: string;

@@ -8,3 +8,7 @@ export const cn = (...inputs: ClassValue[]) => {
 export const formatAddress = (address: string, digist = 4) => {
   return `${address.slice(0, digist)}...${address.slice(-digist)}`;
 };
+
+export const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};

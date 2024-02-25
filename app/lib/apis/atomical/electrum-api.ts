@@ -1,5 +1,4 @@
-import axios from "axios";
-
+import { AxiosInstance } from "@/lib/axios";
 import { detectAddressTypeToScripthash } from "@/lib/utils/address-helpers";
 
 import { ElectrumApiInterface } from "./electrum-api.interface";
@@ -58,7 +57,7 @@ export class ElectrumApi implements ElectrumApiInterface {
           ...(this.usePost ? { data: { params } } : { params: params }),
         };
 
-        const response = await axios(options);
+        const response = await AxiosInstance(options);
         return response.data.response;
       } catch (error) {
         console.log(`Error using endpoint ${baseUrl}:`, error);
@@ -187,21 +186,24 @@ export class ElectrumApi implements ElectrumApiInterface {
         };
       };
       mint_info: {
-        commit_height: 819238;
-        commit_index: 0;
-        commit_location: "0000e13a4012188a15950df1b61cfe7c41529a49032a13af55a686e572e755b5i0";
-        commit_tx_num: 928495589;
-        commit_txid: "0000e13a4012188a15950df1b61cfe7c41529a49032a13af55a686e572e755b5";
-        reveal_location: "918f911add2a0bd9badea68a5bdd95328f18dfa7cdc0e15c54637c57a54e6c9ai0";
-        reveal_location_blockhash: "39c0fc6107480286b8c9699c43803f789a69ee7058af02000000000000000000";
-        reveal_location_header: "000000206f3010c5f1877a86ca8c344760b9c771dcfb809c073e000000000000000000004aae82afb0807dd6c54a81430db054044804bf089411db9d69a37a97bc97f6c9048c69655024041726504cf4";
-        reveal_location_height: 819238;
-        reveal_location_index: 0;
-        reveal_location_script: "51202ec6022b88c089fda4cbb8fdd0198a205c5304318de68369140d34d2ddc85f2f";
-        reveal_location_scripthash: "d6394a9c25e257cb7be3774fd68bd35193854351b4b4f074ae71cf99bcc20952";
-        reveal_location_tx_num: 928495590;
-        reveal_location_txid: "918f911add2a0bd9badea68a5bdd95328f18dfa7cdc0e15c54637c57a54e6c9a";
-        reveal_location_value: 1000;
+        args: {
+          [key: string]: any;
+        };
+        commit_height: number;
+        commit_index: number;
+        commit_location: string;
+        commit_tx_num: number;
+        commit_txid: string;
+        reveal_location: string;
+        reveal_location_blockhash: string;
+        reveal_location_header: string;
+        reveal_location_height: number;
+        reveal_location_index: number;
+        reveal_location_script: string;
+        reveal_location_scripthash: string;
+        reveal_location_tx_num: number;
+        reveal_location_txid: string;
+        reveal_location_value: number;
       };
       $bitwork: {
         bitworkc?: string;
@@ -254,7 +256,35 @@ export class ElectrumApi implements ElectrumApiInterface {
     return this.call("blockchain.atomicals.listscripthash", params);
   }
 
-  public atomicalsByAddress(address: string): Promise<any> {
+  public atomicalsByAddress(address: string): Promise<{
+    atomicals: {
+      [atomical: string]: {
+        atomical_id: string;
+        atomical_number: number;
+        confirmed: number;
+        subtype: string;
+        type: "NFT" | "FT";
+
+        // dmint
+        dmitem: string;
+        parent_container: string;
+        request_dmitem: string;
+
+        // FT
+        request_ticker: string;
+        ticker: string;
+
+        // realm
+        full_realm_name: string;
+        realm: string;
+        request_realm: string;
+
+        // container
+        container: string;
+        request_container: string;
+      };
+    };
+  }> {
     const { scripthash } = detectAddressTypeToScripthash(address);
     return this.atomicalsByScripthash(scripthash);
   }

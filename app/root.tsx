@@ -10,6 +10,7 @@ import {
 } from "@remix-run/react";
 
 import Header from "./components/Header";
+import { Toaster } from "./lib/hooks/useToast";
 import { WalletProvider } from "./lib/hooks/useWallet";
 import styles from "./tailwind.css";
 
@@ -49,6 +50,7 @@ export default function App() {
           <main className="mt-20">
             <Outlet />
           </main>
+          <Toaster />
         </WalletProvider>
         <ScrollRestoration />
         <Scripts />
