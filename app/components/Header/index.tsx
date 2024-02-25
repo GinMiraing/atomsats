@@ -1,7 +1,7 @@
+import { useNavigate } from "@remix-run/react";
 import { Wallet } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { getElectrumClient } from "@/lib/apis/atomical";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useWallet } from "@/lib/hooks/useWallet";
 import { formatAddress } from "@/lib/utils";
@@ -17,25 +17,11 @@ import {
 } from "../DropdownMenu";
 
 const Header: React.FC = () => {
-  const { account, disconnect, network } = useWallet();
+  const { account, disconnect } = useWallet();
   const { isMobile } = useMediaQuery();
+  const nagigate = useNavigate();
 
   const [walletModalOpen, setWalletModalOpen] = useState(false);
-
-  const electrumClient = getElectrumClient(network);
-
-  const test = async () => {
-    const result = await electrumClient.atomicalsList(20, 187761, true);
-    // const result = await electrumClient.atomicalsByAddress(
-    //   "bc1p0pr77wpaqeg8d7ln7txddnhsrnt0sv66j6re7f7w9cntj8rwfw4shwd0un",
-    // );
-
-    console.log(result);
-  };
-
-  useEffect(() => {
-    test();
-  }, [electrumClient, account]);
 
   return (
     <div className="fixed left-0 top-0 z-10 flex h-20 w-full items-center justify-between bg-primary px-4 shadow">
@@ -57,6 +43,9 @@ const Header: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => nagigate(`/address/${account}`)}>
+              My Items
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => disconnect()}>
               Disconnect
             </DropdownMenuItem>
