@@ -9,6 +9,7 @@ const config: Config = {
           DEFAULT: "var(--theme)",
           hover: "var(--theme-hover)",
         },
+        error: "var(--error)",
       },
       borderColor: {
         DEFAULT: "var(--border)",
