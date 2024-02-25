@@ -42,3 +42,12 @@ export const getAddressBalance = async (address: string, network: Network) => {
     confirmedBalance,
   };
 };
+
+export const getBtcPrice = async () => {
+  const { data } = await AxiosInstance.get<{
+    time: number;
+    USD: number;
+  }>("https://mempool.space/api/v1/prices");
+
+  return data.USD;
+};

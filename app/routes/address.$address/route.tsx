@@ -5,6 +5,7 @@ import useSWR from "swr";
 
 import { getElectrumClient } from "@/lib/apis/atomical";
 import { getAddressBalance } from "@/lib/apis/mempool";
+import useBTCPrice from "@/lib/hooks/useBTCPrice";
 import { useToast } from "@/lib/hooks/useToast";
 import { formatAddress } from "@/lib/utils";
 import { detectAddressType } from "@/lib/utils/address-helpers";
@@ -28,12 +29,60 @@ export default function Address() {
 
   const electrumClient = getElectrumClient(networks.bitcoin);
   const { toast } = useToast();
+  const { BTCPrice, BTCPriceValidating } = useBTCPrice();
 
   const { data, isLoading, isValidating } = useSWR(
     `portfolio-${address}`,
     async () => {
       const balance = await getAddressBalance(address, networks.bitcoin);
-      const atomicals = await electrumClient.atomicalsByAddress(address);
+      const { atomicals } = await electrumClient.atomicalsByAddress(address);
+
+      const atomicalList = Object.values(atomicals);
+
+      const arc20TokenSummary = atomicalList.reduce<number>((acc, cur) => {
+        if (cur.type === "FT") {
+          acc += cur.confirmed;
+        }
+        return acc;
+      }, 0);
+
+      const realmCount = atomicalList.reduce<number>((acc, cur) => {
+        if (cur.subtype === "realm" || cur.subtype === "subrealm") {
+          acc += 1;
+        }
+        return acc;
+      }, 0);
+
+      const dmitemCount = atomicalList.reduce<number>((acc, cur) => {
+        if (cur.subtype === "dmitem") {
+          acc += 1;
+        }
+        return acc;
+      }, 0);
+
+      const containerCount = atomicalList.reduce<number>((acc, cur) => {
+        if (cur.subtype === "container") {
+          acc += 1;
+        }
+        return acc;
+      }, 0);
+
+      return {
+        balance: {
+          total: balance.totalBalance,
+          confirmed: balance.confirmedBalance,
+        },
+        atomicals,
+        atomicalsSummary: {
+          arc20TokenSummary,
+          realmCount,
+          dmitemCount,
+          containerCount,
+        },
+      };
+    },
+    {
+      refreshInterval: 1000 * 60 * 30,
     },
   );
 
