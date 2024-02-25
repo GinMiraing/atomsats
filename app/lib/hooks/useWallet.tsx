@@ -1,5 +1,11 @@
 import { type Network, networks } from "bitcoinjs-lib";
-import { createContext, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import { Wallet } from "@/global";
 
@@ -62,6 +68,8 @@ export const WalletProvider: React.FC<{
     setAccount(account[0]);
     setNetwork(network === "livenet" ? networks.bitcoin : networks.testnet);
     setConnector(walletInstance);
+
+    window.localStorage.setItem("last_connected_wallet", wallet);
   }, []);
 
   const disconnect = useCallback(() => {
@@ -73,6 +81,18 @@ export const WalletProvider: React.FC<{
     setAccount("");
     setNetwork(networks.bitcoin);
     setConnector(null);
+
+    window.localStorage.removeItem("last_connected_wallet");
+  }, []);
+
+  useEffect(() => {
+    const lastConnectedWallet = window.localStorage.getItem(
+      "last_connected_wallet",
+    );
+
+    if (lastConnectedWallet) {
+      connect(lastConnectedWallet as "unisat" | "wizz");
+    }
   }, []);
 
   return (
