@@ -12,7 +12,7 @@ export default function Explorer() {
   const [atomicals, setAtomicals] = useState<AtomicalPreviewItem[]>([]);
 
   const fetchAtomicals = async () => {
-    const { result } = await electrumClient.atomicalsList(20, 187761, true);
+    const { result } = await electrumClient.atomicalsList(20, -1, false);
 
     setAtomicals(
       result.map((atomical) => {
@@ -21,6 +21,7 @@ export default function Explorer() {
           atomical_number: atomical["atomical_number"],
           type: atomical["type"],
           subtype: atomical["subtype"],
+          timestamp: atomical["mint_info"]["args"]["time"],
         };
 
         if (
@@ -70,9 +71,12 @@ export default function Explorer() {
   }, []);
 
   return (
-    <div className="grid h-full w-full grid-cols-4 gap-8">
+    <div className="mx-auto grid h-full w-full max-w-screen-lg grid-cols-5 gap-8">
       {atomicals.map((atomical) => (
-        <AtomicalPreview atomical={atomical} />
+        <AtomicalPreview
+          key={atomical.atomical_id}
+          atomical={atomical}
+        />
       ))}
     </div>
   );
