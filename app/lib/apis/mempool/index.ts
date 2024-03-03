@@ -1,6 +1,6 @@
 import { Network, networks } from "bitcoinjs-lib";
 
-import { AxiosInstance } from "@/lib/axios";
+import AxiosInstance from "@/lib/axios";
 
 const BaseUrl = (network: Network) =>
   network === networks.bitcoin
