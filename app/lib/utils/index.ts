@@ -99,11 +99,13 @@ export const getAtomicalContent = (atomical: AtomicalUnionResponse) => {
     return result;
   }
 
-  if (!atomical.state || !atomical.state.latest) {
+  if (!atomical.mint_data || !atomical.mint_data.fields) {
     return result;
   }
 
-  const data = Object.entries(atomical.state.latest);
+  const data = Object.entries(atomical.mint_data.fields).filter(
+    (v) => v[0] !== "args",
+  );
 
   if (data.length === 0) {
     return result;

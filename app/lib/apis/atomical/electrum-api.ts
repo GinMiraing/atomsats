@@ -119,6 +119,9 @@ export class ElectrumApi implements ElectrumApiInterface {
   }
 
   public atomicalsGet(atomicalAliasOrId: string | number): Promise<{
+    global: {
+      atomical_count: number;
+    };
     result: AtomicalUnionResponse;
   }> {
     return this.call("blockchain.atomicals.get", [atomicalAliasOrId]);

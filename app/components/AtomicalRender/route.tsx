@@ -36,7 +36,7 @@ const AtomicalRender: React.FC<{
 
     return (
       <img
-        className="h-full w-full object-fill"
+        className="h-full w-full object-contain"
         src={
           atomical.contentType === "svg"
             ? `data:image/svg+xml;base64,${base64Data}`

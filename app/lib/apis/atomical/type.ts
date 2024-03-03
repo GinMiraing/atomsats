@@ -45,6 +45,7 @@ export interface BaseAtomicalResponse {
     };
     reveal_location_txid: string;
     reveal_location_value: number;
+    reveal_location_script: string;
   };
   state?: {
     latest: {

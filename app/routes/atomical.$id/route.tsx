@@ -39,7 +39,7 @@ export default function AtomicalId() {
     try {
       setLoading(true);
 
-      const { result } = await electrumClient.atomicalsGetState(id, true);
+      const { result } = await electrumClient.atomicalsGet(id);
 
       const atomicalDataTemp: {
         atomicalId: string;
@@ -60,9 +60,9 @@ export default function AtomicalId() {
         type: result.type,
         subtype: result.subtype || "",
         owner: isFT(result)
-          ? "-"
-          : result.location_info.length === 0
-            ? "-"
+          ? ""
+          : !result.location_info || result.location_info.length === 0
+            ? detectScriptToAddressType(result.mint_info.reveal_location_script)
             : detectScriptToAddressType(result.location_info[0].script),
         mintTime: result.mint_info.args.time || 0,
         revealTxid: result.mint_info.reveal_location_txid || "0",
@@ -107,8 +107,8 @@ export default function AtomicalId() {
 
   if (!atomical)
     return (
-      <div className="mx-auto flex h-96 max-w-screen-xl items-center justify-center px-4 py-8">
-        NO ATOMICAL DATA
+      <div className="mx-auto flex h-screen max-w-screen-xl items-center justify-center px-4 py-8 text-xl">
+        no atomical data
       </div>
     );
 
@@ -117,7 +117,7 @@ export default function AtomicalId() {
       <div className="relative mx-auto flex aspect-square w-full max-w-[300px] items-center justify-center overflow-hidden rounded-md bg-black text-white">
         <AtomicalRender atomical={atomical} />
         <div className="absolute left-4 top-4 flex rounded-md bg-theme px-2 py-1">
-          {atomical.subtype.toUpperCase()}
+          {atomical.subtype.toUpperCase() || "NFT"}
         </div>
       </div>
       <div className="mt-6 flex flex-col items-start gap-6 md:flex-row">
@@ -137,14 +137,14 @@ export default function AtomicalId() {
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <span className="text-lg text-secondary">SUBTYPE</span>
-              <span>{atomical.subtype}</span>
+              <span>{atomical.subtype || "-"}</span>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <div className="flex items-center space-x-1">
                 <span className="text-lg text-secondary">OWNER</span>
                 <CopyButton text={atomical.owner} />
               </div>
-              <span className="grid truncate">{atomical.owner}</span>
+              <span className="grid truncate">{atomical.owner || "-"}</span>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <span className="text-lg text-secondary">REVEAL TXID</span>
@@ -219,39 +219,53 @@ const LoadingSkeleton = () => {
           </div>
           <div className="divide-y">
             <div className="flex flex-col space-y-1 px-4 py-2">
-              <span className="text-lg text-secondary">NUMBER</span>
-              <span className="h-6 animate-pulse bg-gray-300"></span>
+              <div className="text-lg text-secondary">NUMBER</div>
+              <div className="h-6 w-full py-1">
+                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+              </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
-              <span className="text-lg text-secondary">TYPE</span>
-              <span className="h-6 animate-pulse bg-gray-300"></span>
+              <div className="text-lg text-secondary">TYPE</div>
+              <div className="h-6 w-full py-1">
+                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+              </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
-              <span className="text-lg text-secondary">SUBTYPE</span>
-              <span className="h-6 animate-pulse bg-gray-300"></span>
+              <div className="text-lg text-secondary">SUBTYPE</div>
+              <div className="h-6 w-full py-1">
+                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+              </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <div className="flex items-center space-x-1">
-                <span className="text-lg text-secondary">OWNER</span>
+                <div className="text-lg text-secondary">OWNER</div>
                 <CopyButton text={""} />
               </div>
-              <span className="h-6 animate-pulse bg-gray-300"></span>
+              <div className="h-6 w-full py-1">
+                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+              </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
-              <span className="text-lg text-secondary">REVEAL TXID</span>
-              <span className="h-6 animate-pulse bg-gray-300"></span>
+              <div className="text-lg text-secondary">REVEAL TXID</div>
+              <div className="h-6 w-full py-1">
+                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+              </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
-              <span className="text-lg text-secondary">REVEAL VALUE</span>
-              <span className="h-6 animate-pulse bg-gray-300"></span>
+              <div className="text-lg text-secondary">REVEAL VALUE</div>
+              <div className="h-6 w-full py-1">
+                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+              </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
-              <span className="text-lg text-secondary">MINT TIME</span>
-              <span className="h-6 animate-pulse bg-gray-300"></span>
+              <div className="text-lg text-secondary">MINT TIME</div>
+              <div className="h-6 w-full py-1">
+                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+              </div>
             </div>
           </div>
           <div className="flex h-12 w-full items-center justify-end space-x-1 border-t bg-secondary px-4">
-            <span>DETAIL</span>
+            <div>DETAIL</div>
             <ExternalLink className="h-4 w-4" />
           </div>
         </div>
@@ -261,13 +275,13 @@ const LoadingSkeleton = () => {
           </div>
           <div className="divide-y">
             <div className="flex items-center px-4 py-2">
-              <span className="h-6 w-full animate-pulse bg-gray-300"></span>
+              <div className="my-1 h-4 w-full animate-pulse bg-gray-300"></div>
             </div>
             <div className="flex items-center px-4 py-2">
-              <span className="h-6 w-full animate-pulse bg-gray-300"></span>
+              <div className="my-1 h-4 w-full animate-pulse bg-gray-300"></div>
             </div>
             <div className="flex items-center px-4 py-2">
-              <span className="h-6 w-full animate-pulse bg-gray-300"></span>
+              <div className="my-1 h-4 w-full animate-pulse bg-gray-300"></div>
             </div>
           </div>
         </div>
