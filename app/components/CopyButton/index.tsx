@@ -1,10 +1,12 @@
 import { Check, Copy } from "lucide-react";
 
 import useClipboard from "@/lib/hooks/useClipboard";
+import { cn } from "@/lib/utils";
 
 const CopyButton: React.FC<{
   text: string;
-}> = ({ text }) => {
+  className?: string;
+}> = ({ text, className }) => {
   const { copyToClipboard, success } = useClipboard();
 
   const handleCopy = async () => {
@@ -13,19 +15,29 @@ const CopyButton: React.FC<{
 
   if (success) {
     return (
-      <div className="flex rounded-md bg-primary p-2 text-green-400 transition-colors hover:bg-secondary">
-        <Check className="h-5 w-5" />
+      <div
+        className={cn(
+          "flex rounded-md p-2 text-green-400 transition-colors hover:bg-secondary",
+          className,
+        )}
+      >
+        <Check className="h-4 w-4" />
       </div>
     );
   }
 
   return (
-    <div className="flex cursor-pointer rounded-md bg-primary p-2 text-primary transition-colors hover:bg-secondary hover:text-theme">
+    <div
+      className={cn(
+        "flex cursor-pointer rounded-md p-2 text-primary transition-colors hover:bg-secondary hover:text-theme",
+        className,
+      )}
+    >
       <Copy
         onClick={() => {
           handleCopy();
         }}
-        className="h-5 w-5"
+        className="h-4 w-4"
       />
     </div>
   );

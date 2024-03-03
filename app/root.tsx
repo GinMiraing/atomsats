@@ -9,6 +9,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import { Toaster } from "./lib/hooks/useToast";
 import { WalletProvider } from "./lib/hooks/useWallet";
@@ -43,6 +44,19 @@ export default function App() {
         />
         <Meta />
         <Links />
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
         <WalletProvider>
@@ -50,6 +64,7 @@ export default function App() {
           <main className="mt-20">
             <Outlet />
           </main>
+          <Footer />
           <Toaster />
         </WalletProvider>
         <ScrollRestoration />

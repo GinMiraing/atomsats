@@ -5,6 +5,16 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    font-family: "Ubuntu", sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--theme);
   }
 
   :root {
@@ -12,9 +22,9 @@
     --theme-hover: #fda4af;
     --border: #e2e8f0;
     --background-primary: #fff;
-    --background-secondary: #f2f4f7;
-    --font-primary: #0f051d;
-    --font-secondary: #475467;
+    --background-secondary: #f6f8fa;
+    --font-primary: #1f2328;
+    --font-secondary: #656d76;
     --error: #dc2626;
   }
 
@@ -25,7 +35,7 @@
     --background-primary: #252429;
     --background-secondary: #35343a;
     --font-primary: #fff;
-    --font-secondary: #b0b0b0;
+    --font-secondary: #656d76;
     --error: #dc2626;
   }
 
