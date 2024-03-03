@@ -1,7 +1,8 @@
-import { AxiosInstance } from "@/lib/axios";
+import AxiosInstance from "@/lib/axios";
 import { detectAddressTypeToScripthash } from "@/lib/utils/address-helpers";
 
 import { ElectrumApiInterface } from "./electrum-api.interface";
+import { AtomicalUnionResponse, FTResponse } from "./type";
 
 export class ElectrumApi implements ElectrumApiInterface {
   private isOpenFlag = false;
@@ -61,10 +62,9 @@ export class ElectrumApi implements ElectrumApiInterface {
         return response.data.response;
       } catch (error) {
         console.log(`Error using endpoint ${baseUrl}:`, error);
+        throw error;
       }
     }
-
-    throw new Error("All endpoints failed");
   }
 
   public sendTransaction(signedRawTx: string): Promise<any> {
@@ -118,11 +118,15 @@ export class ElectrumApi implements ElectrumApiInterface {
     return this.call("blockchain.atomicals.get_global", [hashes]);
   }
 
-  public atomicalsGet(atomicalAliasOrId: string | number): Promise<any> {
+  public atomicalsGet(atomicalAliasOrId: string | number): Promise<{
+    result: AtomicalUnionResponse;
+  }> {
     return this.call("blockchain.atomicals.get", [atomicalAliasOrId]);
   }
 
-  public atomicalsGetFtInfo(atomicalAliasOrId: string | number): Promise<any> {
+  public atomicalsGetFtInfo(atomicalAliasOrId: string | number): Promise<{
+    result: FTResponse;
+  }> {
     return this.call("blockchain.atomicals.get_ft_info", [atomicalAliasOrId]);
   }
 
@@ -143,7 +147,12 @@ export class ElectrumApi implements ElectrumApiInterface {
   public atomicalsGetState(
     atomicalAliasOrId: string | number,
     verbose: boolean,
-  ): Promise<any> {
+  ): Promise<{
+    global: {
+      atomical_count: number;
+    };
+    result: AtomicalUnionResponse;
+  }> {
     return this.call("blockchain.atomicals.get_state", [
       atomicalAliasOrId,
       verbose ? 1 : 0,
@@ -156,9 +165,16 @@ export class ElectrumApi implements ElectrumApiInterface {
     return this.call("blockchain.atomicals.get_events", [atomicalAliasOrId]);
   }
 
-  public atomicalsGetTxHistory(
-    atomicalAliasOrId: string | number,
-  ): Promise<any> {
+  public atomicalsGetTxHistory(atomicalAliasOrId: string | number): Promise<{
+    result: {
+      tx: {
+        history: {
+          height: number;
+          tx_hash: string;
+        }[];
+      };
+    };
+  }> {
     return this.call("blockchain.atomicals.get_tx_history", [
       atomicalAliasOrId,
     ]);
@@ -173,74 +189,7 @@ export class ElectrumApi implements ElectrumApiInterface {
     offset: number,
     asc = false,
   ): Promise<{
-    result: {
-      atomical_id: string;
-      atomical_number: number;
-      atomical_ref: string;
-      confirmed: boolean;
-      subtype: string;
-      type: "NFT" | "FT";
-      mint_data: {
-        fields: {
-          [key: string]: any;
-        };
-      };
-      mint_info: {
-        args: {
-          [key: string]: any;
-        };
-        commit_height: number;
-        commit_index: number;
-        commit_location: string;
-        commit_tx_num: number;
-        commit_txid: string;
-        reveal_location: string;
-        reveal_location_blockhash: string;
-        reveal_location_header: string;
-        reveal_location_height: number;
-        reveal_location_index: number;
-        reveal_location_script: string;
-        reveal_location_scripthash: string;
-        reveal_location_tx_num: number;
-        reveal_location_txid: string;
-        reveal_location_value: number;
-      };
-      $bitwork: {
-        bitworkc?: string;
-        bitworkr?: string;
-      };
-
-      // dmint
-      $parent_container: string;
-      $parent_container_name: string;
-      $request_dmitem: string;
-      $dmitem: string;
-
-      // realm
-      $full_realm_name: string;
-      $realm: string;
-      $request_realm: string;
-
-      // ft
-      $max_mints: number;
-      $max_supply: number;
-      $mint_amount: number;
-      $mint_bitworkc: string;
-      $mint_bitworkr: string;
-      $mint_height: number;
-      $mint_mode: "fixed" | "perpetual";
-      $request_ticker: string;
-      $ticker: string;
-      $mint_bitwork_vec: string;
-      $mint_bitworkc_inc: number;
-      $mint_bitworkc_start: number;
-      $mint_bitworkr_inc: number;
-      $mint_bitworkr_start: number;
-
-      // container
-      $container: string;
-      $request_container: string;
-    }[];
+    result: AtomicalUnionResponse[];
   }> {
     return this.call("blockchain.atomicals.list", [limit, offset, asc ? 1 : 0]);
   }
@@ -264,6 +213,13 @@ export class ElectrumApi implements ElectrumApiInterface {
         confirmed: number;
         subtype: string;
         type: "NFT" | "FT";
+        data: {
+          mint_data: {
+            fields: {
+              [key: string]: any;
+            };
+          };
+        };
 
         // dmint
         dmitem: string;
@@ -319,7 +275,13 @@ export class ElectrumApi implements ElectrumApiInterface {
     return this.call("blockchain.atomicals.get_by_ticker", [ticker]);
   }
 
-  public atomicalsGetByContainer(container: string): Promise<any> {
+  public atomicalsGetByContainer(container: string): Promise<{
+    result: {
+      status: string;
+      candidate_atomical_id: string;
+      atomical_id: string;
+    };
+  }> {
     return this.call("blockchain.atomicals.get_by_container", [container]);
   }
 
@@ -370,7 +332,14 @@ export class ElectrumApi implements ElectrumApiInterface {
   public atomicalsFindTickers(
     prefix: string | null,
     asc?: boolean,
-  ): Promise<any> {
+  ): Promise<{
+    result: {
+      atomical_id: string;
+      tx_num: number;
+      ticker: string;
+      ticker_hex: string;
+    }[];
+  }> {
     const args: any = [];
     args.push(prefix ? prefix : null);
     if (!asc) {

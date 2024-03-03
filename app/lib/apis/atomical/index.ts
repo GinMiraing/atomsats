@@ -3,7 +3,7 @@ import { type Network, networks } from "bitcoinjs-lib";
 import { ElectrumApi } from "./electrum-api";
 
 const electrumClient = ElectrumApi.createClient(
-  "https://ep.atomicals.xyz/proxy",
+  "https://ep.atomicalmarket.com/proxy",
 );
 
 const testnetElectrumClient = ElectrumApi.createClient(
