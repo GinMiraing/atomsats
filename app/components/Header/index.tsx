@@ -1,10 +1,10 @@
-import { useNavigate } from "@remix-run/react";
-import { Wallet } from "lucide-react";
+import { useLocation, useNavigate } from "@remix-run/react";
+import { Compass, Menu, Pickaxe, Store, Wallet } from "lucide-react";
 import { useState } from "react";
 
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useWallet } from "@/lib/hooks/useWallet";
-import { formatAddress } from "@/lib/utils";
+import { cn, formatAddress } from "@/lib/utils";
 
 import { Button } from "../Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../Dialog";
@@ -15,23 +15,67 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../DropdownMenu";
+import { Sheet, SheetContent } from "../Sheet";
+
+const Navigations = [
+  {
+    name: "Market",
+    link: "/",
+    icon: <Store className="h-6 w-6" />,
+  },
+  {
+    name: "Mint",
+    link: "/mint",
+    icon: <Pickaxe className="h-6 w-6" />,
+  },
+  {
+    name: "Explorer",
+    link: "/explorer",
+    icon: <Compass className="h-6 w-6" />,
+  },
+];
 
 const Header: React.FC = () => {
   const { account, disconnect } = useWallet();
   const { isMobile } = useMediaQuery();
   const nagigate = useNavigate();
+  const { pathname } = useLocation();
 
   const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
-    <div className="fixed left-0 top-0 z-10 flex h-20 w-full items-center justify-between bg-primary px-4 shadow">
-      <a
-        className="text-2xl text-primary transition-colors hover:text-theme"
-        href="/"
-      >
-        Atomical Utils
-      </a>
-      {!account && (
+    <header className="fixed left-0 top-0 z-10 flex h-20 w-full items-center justify-between bg-primary px-4 shadow">
+      <div className="flex items-center space-x-10">
+        <a
+          className="flex items-center space-x-3 text-primary transition-colors hover:text-theme"
+          href="/"
+        >
+          <img
+            src="/icons/logo.svg"
+            alt="atomical utils"
+          />
+          <div className="text-xl font-bold">Atomical Utils</div>
+        </a>
+        <div className="hidden items-center space-x-4 text-xl md:flex">
+          {Navigations.map((item) => (
+            <a
+              key={item.name}
+              href={item.link}
+              className={cn("transition-colors hover:text-theme", {
+                "text-theme":
+                  item.name === "Analysis"
+                    ? pathname === "/"
+                    : pathname.startsWith(item.link),
+              })}
+            >
+              {item.name}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* {!account && (
         <Button onClick={() => setWalletModalOpen(true)}>Connect</Button>
       )}
       {account && (
@@ -51,7 +95,7 @@ const Header: React.FC = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
+      )} */}
       {isMobile ? (
         <MobileWalletModal
           open={walletModalOpen}
@@ -63,7 +107,31 @@ const Header: React.FC = () => {
           setOpen={setWalletModalOpen}
         />
       )}
-    </div>
+      <Menu
+        className="h-5 w-5 cursor-pointer text-primary transition-colors hover:text-theme md:hidden"
+        onClick={() => setSheetOpen(!sheetOpen)}
+      />
+      <Sheet
+        open={isMobile && sheetOpen}
+        onOpenChange={setSheetOpen}
+      >
+        <SheetContent className="pt-12">
+          <div className="border-b py-2 text-2xl font-medium">Menu</div>
+          <div className="mt-6 space-y-2">
+            {Navigations.map((item) => (
+              <a
+                key={item.name}
+                href={item.link}
+                className="flex w-full items-center space-x-3 rounded-lg bg-secondary p-6 text-primary transition-colors hover:bg-theme hover:text-white"
+              >
+                {item.icon}
+                <span className="text-xl">{item.name}</span>
+              </a>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </header>
   );
 };
 
