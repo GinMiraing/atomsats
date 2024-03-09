@@ -24,11 +24,12 @@ export const meta: MetaFunction = () => {
   return [
     {
       title:
-        "Atomical Utils - An application for exploring & mint & transform atomicals",
+        "Atomical Utils - Buy & Mint & Transfer & Deploy & Explore ARC20s more conveniently",
     },
     {
       name: "description",
-      content: "An application for exploring & mint & transform atomicals",
+      content:
+        "Buy & Mint & Transfer & Deploy & Explore ARC20s more conveniently",
     },
   ];
 };
