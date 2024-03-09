@@ -1440,18 +1440,6 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.12.0.tgz#9ffdf9ed133a7464f4ae187eb9e1294413fab235"
   integrity sha512-ZYmr5mS2wd4Dew/JjT0Fqi2NPB/ZhZ2VvPp7SmvPZb4Y1CG/LRcS6tcRo2cYU7zLK5A7cdbhWnnWmUjoI4qapg==
 
-"@tanstack/react-table@^8.13.2":
-  version "8.13.2"
-  resolved "https://registry.yarnpkg.com/@tanstack/react-table/-/react-table-8.13.2.tgz#a3aa737ae464abc651f68daa7e82dca17813606c"
-  integrity sha512-b6mR3mYkjRtJ443QZh9sc7CvGTce81J35F/XMr0OoWbx0KIM7TTTdyNP2XKObvkLpYnLpCrYDwI3CZnLezWvpg==
-  dependencies:
-    "@tanstack/table-core" "8.13.2"
-
-"@tanstack/table-core@8.13.2":
-  version "8.13.2"
-  resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.13.2.tgz#2512574dd3d20dc94b7db1f9f48090f0c18b5c85"
-  integrity sha512-/2saD1lWBUV6/uNAwrsg2tw58uvMJ07bO2F1IWMxjFRkJiXKQRuc3Oq2aufeobD3873+4oIM/DRySIw7+QsPPw==
-
 "@trivago/prettier-plugin-sort-imports@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@trivago/prettier-plugin-sort-imports/-/prettier-plugin-sort-imports-4.3.0.tgz#725f411646b3942193a37041c84e0b2116339789"
