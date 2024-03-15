@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-const useClipboard = () => {
+export const useClipboard = () => {
   const [success, setSuccess] = useState(false);
 
   const copyToClipboard = useCallback(
@@ -35,5 +35,3 @@ const useClipboard = () => {
 
   return { copyToClipboard, success };
 };
-
-export default useClipboard;

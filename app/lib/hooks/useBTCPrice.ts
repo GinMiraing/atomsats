@@ -2,7 +2,7 @@ import useSWR from "swr";
 
 import { getBtcPrice } from "../apis/mempool";
 
-const useBTCPrice = () => {
+export const useBTCPrice = () => {
   const { data, isLoading, isValidating } = useSWR(
     "btc-price",
     async () => {
@@ -20,5 +20,3 @@ const useBTCPrice = () => {
     BTCPriceValidating: isValidating,
   };
 };
-
-export default useBTCPrice;
