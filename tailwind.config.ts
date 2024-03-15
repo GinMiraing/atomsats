@@ -17,6 +17,7 @@ const config: Config = {
       backgroundColor: {
         primary: "var(--background-primary)",
         secondary: "var(--background-secondary)",
+        skeleton: "var(--background-skeleton)",
       },
       textColor: {
         primary: "var(--font-primary)",

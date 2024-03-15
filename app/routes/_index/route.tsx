@@ -1,13 +1,11 @@
 import Banner from "./components/Banner";
-import Filters from "./components/Filters";
-import TokenTable from "./components/TokenTable";
+import Collections from "./components/Collections";
 
 export default function Index() {
   return (
-    <div className="mx-auto max-w-screen-xl space-y-4 px-4 py-8">
+    <div className="w-full space-y-4">
       <Banner />
-      <Filters />
-      <TokenTable />
+      <Collections />
     </div>
   );
 }

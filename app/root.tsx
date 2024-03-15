@@ -8,12 +8,16 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime.js";
 
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import { Toaster } from "./lib/hooks/useToast";
 import { WalletProvider } from "./lib/hooks/useWallet";
 import styles from "./tailwind.css";
+
+dayjs.extend(relativeTime);
 
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
@@ -63,7 +67,9 @@ export default function App() {
         <WalletProvider>
           <Header />
           <main className="mt-20">
-            <Outlet />
+            <div className="mx-auto max-w-screen-xl px-4 py-8">
+              <Outlet />
+            </div>
           </main>
           <Footer />
           <Toaster />

@@ -1,6 +1,6 @@
 import { useSearchParams } from "@remix-run/react";
 
-const useSetSearch = () => {
+export const useSetSearch = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const updateSearchParams = (
@@ -14,6 +14,10 @@ const useSetSearch = () => {
       options?.replace || false
         ? new URLSearchParams()
         : new URLSearchParams(searchParams);
+
+    if (!("page" in params)) {
+      newSearchParams.delete("page");
+    }
 
     Object.entries(params).forEach(([key, value]) => {
       newSearchParams.set(key, value);
@@ -29,5 +33,3 @@ const useSetSearch = () => {
     updateSearchParams,
   };
 };
-
-export default useSetSearch;

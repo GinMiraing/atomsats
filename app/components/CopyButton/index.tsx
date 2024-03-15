@@ -1,6 +1,6 @@
 import { Check, Copy } from "lucide-react";
 
-import useClipboard from "@/lib/hooks/useClipboard";
+import { useClipboard } from "@/lib/hooks/useClipboard";
 import { cn } from "@/lib/utils";
 
 const CopyButton: React.FC<{

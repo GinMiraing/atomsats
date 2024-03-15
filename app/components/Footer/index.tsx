@@ -5,7 +5,6 @@ const Footer: React.FC = () => {
       <div className="text-sm">
         Buy & Mint & Transfer & Deploy & Explore ARC20s more conveniently
       </div>
-      <div>report bug</div>
     </footer>
   );
 };

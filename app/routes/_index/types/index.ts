@@ -1,33 +1,16 @@
-export type TokenResponse = {
-  id: number;
+export type CollectionResponse = {
   atomicalId: string;
   atomicalNumber: number;
+  container: string;
   name: string;
   deployTime: number;
+  itemCount: number;
+  mintedCount: number;
   holders: number;
-  updateAt: number;
   iconUrl: string;
-  mintMode: "fixed" | "perpetual";
-  minted: string;
-  totalSupply: string;
-  market: {
-    atomicalmarket: {
-      floorPrice: number;
-      totalListed: number;
-      volume1Day: number;
-      volume7Days: number;
-      volumeTotal: number;
-      sales1Day: number;
-      marketCap: number;
-    };
-    bitatom: {
-      floorPrice: number;
-      totalListed: number;
-      volume1Day: number;
-      volume7Days: number;
-      volumeTotal: number;
-      sales1Day: number;
-      marketCap: number;
-    };
-  };
+  listing: number;
+  volume1Day: number;
+  volume7Days: number;
+  volumeTotal: number;
+  sales1Day: number;
 };
