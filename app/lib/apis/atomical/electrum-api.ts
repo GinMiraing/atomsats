@@ -1,4 +1,5 @@
 import AxiosInstance from "@/lib/axios";
+import { UTXO } from "@/lib/types";
 import { detectAddressTypeToScripthash } from "@/lib/utils/address-helpers";
 
 import { ElectrumApiInterface } from "./electrum-api.interface";
@@ -216,33 +217,127 @@ export class ElectrumApi implements ElectrumApiInterface {
         confirmed: number;
         subtype: string;
         type: "NFT" | "FT";
+
         data: {
+          // subrealm
+          $full_realm_name?: string;
+          $parent_realm?: string;
+          $request_full_realm_name?: string;
+          $request_subrealm?: string;
+          $subrealm?: string;
+          $request_subrealm_status?: {
+            status: string;
+          };
+
+          // dmitem
+          $parent_container?: string;
+          $parent_container_name?: string;
+          $request_dmitem?: string;
+          $dmitem?: string;
+          $request_dmitem_status?: {
+            status: string;
+          };
+
+          // realm
+          $realm?: string;
+          $request_realm?: string;
+          $request_realm_status?: {
+            status: string;
+          };
+
+          // ft
+          $max_mints?: number;
+          $max_supply?: number;
+          $mint_amount?: number;
+
+          $mint_bitworkc?: number;
+          $mint_bitworkr?: string;
+          $mint_bitwork_vec?: string;
+          $mint_bitworkc_inc?: number;
+          $mint_bitworkc_start?: number;
+          $mint_bitworkr_inc?: number;
+          $mint_bitworkr_start?: number;
+
+          $mint_height?: number;
+          $mint_mode?: "fixed" | "perpetual";
+          $request_ticker?: string;
+          $ticker?: string;
+          $request_ticker_status?: {
+            status: string;
+          };
+          dft_info?: {
+            mint_bitworkc_current?: string;
+            mint_bitworkc_next?: string;
+            mint_bitworkc_next_next?: string;
+            mint_count: number;
+          };
+          location_summary?: {
+            circulating_supply: number;
+            unique_holders: number;
+          };
+
+          confirmed: boolean;
+
           mint_data: {
             fields: {
               [key: string]: any;
             };
           };
+
+          mint_info: {
+            // subrealm
+            $parent_realm?: string;
+            $request_subrealm?: string;
+
+            // dmitem
+            $parent_container?: string;
+            $request_dmitem?: string;
+
+            // realm
+            $request_realm?: string;
+
+            // ft
+            $mint_bitworkc?: string;
+            $mint_bitworkr?: string;
+            $request_ticker?: string;
+
+            args: {
+              [key: string]: any;
+            };
+            commit_height: number;
+            commit_index: number;
+            commit_location: string;
+            commit_tx_num: number;
+            commit_txid: string;
+            ctx: any;
+            meta: any;
+            reveal_location: string;
+            reveal_location_blockhash: string;
+            reveal_location_header: string;
+            reveal_location_height: number;
+            reveal_location_index: number;
+            reveal_location_script: string;
+            reveal_location_scripthash: string;
+            reveal_location_tx_num: number;
+            reveal_location_txid: string;
+            reveal_location_value: number;
+          };
+
+          $bitwork?: {
+            bitworkc?: string;
+            bitworkr?: string;
+          };
         };
-
-        // dmint
-        dmitem: string;
-        parent_container: string;
-        request_dmitem: string;
-
-        // FT
-        request_ticker: string;
-        ticker: string;
-
-        // realm
-        full_realm_name: string;
-        realm: string;
-        request_realm: string;
-
-        // container
-        container: string;
-        request_container: string;
       };
     };
+    utxos: {
+      atomicals: string[];
+      height: number;
+      index: number;
+      txid: string;
+      value: number;
+      vout: number;
+    }[];
   }> {
     const { scripthash } = detectAddressTypeToScripthash(address);
     return this.atomicalsByScripthash(scripthash);
