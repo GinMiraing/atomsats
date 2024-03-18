@@ -3,6 +3,8 @@ import * as bitcoin from "bitcoinjs-lib";
 import * as bs58check from "bs58check";
 import { sha256 } from "js-sha256";
 
+import { AccountInfo } from "../types";
+
 bitcoin.initEccLib(ecc);
 
 export function detectAddressTypeToScripthash(address: string): {
@@ -202,4 +204,24 @@ export const detectAccountTypeFromScript = (
   if (isP2PK(script, network)) return "p2pk";
 
   return "unknown";
+};
+
+export const getP2SHRedeemScript = (pubkey: Buffer) => {
+  return bitcoin.payments.p2wpkh({ pubkey }).output!;
+};
+
+export const toXOnly = (publicKey: Buffer) => {
+  return publicKey.subarray(1, 33);
+};
+
+export const getInputExtra = (account: AccountInfo) => {
+  if (account.type === "p2sh") {
+    return { redeemScript: getP2SHRedeemScript(account.pubkey) };
+  }
+
+  if (account.type === "p2tr") {
+    return { tapInternalKey: toXOnly(account.pubkey) };
+  }
+
+  return {};
 };

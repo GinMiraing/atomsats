@@ -47,6 +47,11 @@ export interface BaseAtomicalResponse {
     reveal_location_value: number;
     reveal_location_script: string;
   };
+  mint_data: {
+    fields: {
+      [key: string]: any;
+    };
+  };
   state?: {
     latest: {
       [key: string]: any;
@@ -89,11 +94,7 @@ export interface DMITEMResponse extends BaseAtomicalResponse {
   $request_dmitem_status: {
     status: string;
   };
-  mint_data: {
-    fields: {
-      [key: string]: any;
-    };
-  };
+
   location_info: {
     index: number;
     location: string;

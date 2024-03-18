@@ -5,7 +5,7 @@ export interface Wallet {
   getPublicKey: () => Promise<string>;
   signPsbt: (
     psbtHex: string,
-    options: {
+    options?: {
       autoFinalized: boolean;
       toSignInputs: {
         index: number;

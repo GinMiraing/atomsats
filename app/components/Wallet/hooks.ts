@@ -52,11 +52,11 @@ export const useWallet = create<WalletState>((set) => ({
     });
 
     connector.on("accountsChanged", () => {
-      set({ account: undefined });
+      set({ connector: undefined, account: undefined, walletName: "" });
     });
 
     connector.on("networkChanged", () => {
-      set({ account: undefined });
+      set({ connector: undefined, account: undefined, walletName: "" });
     });
 
     window.localStorage.setItem("wallet", wallet);

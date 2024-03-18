@@ -4,7 +4,10 @@ export const formatError = (error: unknown) => {
   if (isAxiosError(error)) {
     return error.response?.data;
   } else if (error instanceof Error) {
+    console.log(error);
     return ErrorMap[error.message as keyof typeof ErrorMap] || error.message;
+  } else if (typeof error === "object" && error && "message" in error) {
+    return error.message;
   }
 
   return "an unknown error occurred";
@@ -15,6 +18,7 @@ const ErrorMap = {
   "10002": "not found",
   "10003": "not a dmitem",
   "10004": "get dmitem content type failed",
+  "10005": "invalid lock hash",
   "20001": "internal server error",
   "20002": "market api crashed",
   "20003": "electrum api failed",

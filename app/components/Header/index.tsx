@@ -49,10 +49,6 @@ const Header: React.FC = () => {
   const { pathname } = useLocation();
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  useEffect(() => {
-    console.log(account);
-  }, [account]);
-
   return (
     <header className="fixed left-0 top-0 z-10 flex h-20 w-full items-center justify-between bg-secondary px-4 shadow">
       <div className="flex items-center space-x-10">
