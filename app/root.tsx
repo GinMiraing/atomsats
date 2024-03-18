@@ -30,7 +30,7 @@ export const meta: MetaFunction = () => {
   return [
     {
       title:
-        "Atomical Utils - Buy & Mint & Transfer & Deploy & Explore ARC20s more conveniently",
+        "AtomSats - Buy & Mint & Transfer & Deploy & Explore ARC20s more conveniently",
     },
     {
       name: "description",
@@ -43,13 +43,18 @@ export const meta: MetaFunction = () => {
 export default function App() {
   const { connect, account } = useWallet();
 
+  const connectWallet = async () => {
+    const disconnect = window.sessionStorage.getItem("disconnect");
+    const wallet = window.localStorage.getItem("wallet") as "unisat" | "wizz";
+
+    if (!disconnect && wallet) {
+      await connect(wallet);
+    }
+  };
+
   useEffect(() => {
     if (!account) {
-      const wallet = window.localStorage.getItem("wallet") as "unisat" | "wizz";
-
-      if (wallet) {
-        connect(wallet);
-      }
+      connectWallet();
     }
   }, [account]);
 

@@ -51,11 +51,15 @@ export const useWallet = create<WalletState>((set) => ({
       },
     });
 
+    window.sessionStorage.removeItem("disconnect");
+
     connector.on("accountsChanged", () => {
+      window.sessionStorage.setItem("disconnect", "true");
       set({ connector: undefined, account: undefined, walletName: "" });
     });
 
     connector.on("networkChanged", () => {
+      window.sessionStorage.setItem("disconnect", "true");
       set({ connector: undefined, account: undefined, walletName: "" });
     });
 
