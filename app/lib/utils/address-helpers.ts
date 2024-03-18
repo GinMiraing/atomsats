@@ -95,3 +95,111 @@ export function detectScriptToAddressType(
   );
   return address;
 }
+
+const isP2TR = (
+  script: Buffer,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  try {
+    bitcoin.payments.p2tr({ output: script, network });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+const isP2PKH = (
+  script: Buffer,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  try {
+    bitcoin.payments.p2pkh({ output: script, network });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+const isP2WPKH = (
+  script: Buffer,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  try {
+    bitcoin.payments.p2wpkh({ output: script, network });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+const isP2SH = (
+  script: Buffer,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  try {
+    bitcoin.payments.p2sh({ output: script, network });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+const isP2WSH = (
+  script: Buffer,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  try {
+    bitcoin.payments.p2wsh({ output: script, network });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+const isP2MS = (
+  script: Buffer,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  try {
+    bitcoin.payments.p2ms({ output: script, network });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+const isP2PK = (
+  script: Buffer,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  try {
+    bitcoin.payments.p2pk({ output: script, network });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const detectAccountType = (
+  address: string,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  const script = bitcoin.address.toOutputScript(address, network);
+
+  return detectAccountTypeFromScript(script, network);
+};
+
+export const detectAccountTypeFromScript = (
+  script: Buffer,
+  network: bitcoin.Network = bitcoin.networks.bitcoin,
+) => {
+  if (isP2TR(script, network)) return "p2tr";
+  if (isP2PKH(script, network)) return "p2pkh";
+  if (isP2WPKH(script, network)) return "p2wpkh";
+  if (isP2SH(script, network)) return "p2sh";
+  if (isP2WSH(script, network)) return "p2wsh";
+  if (isP2MS(script, network)) return "p2ms";
+  if (isP2PK(script, network)) return "p2pk";
+
+  return "unknown";
+};

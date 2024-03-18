@@ -23,7 +23,8 @@ export const loader: LoaderFunction = async ({ params }) => {
     } else {
       return new Response(Buffer.from(resp.content, "hex"), {
         headers: {
-          "Content-Type": resp.contentType,
+          "Content-Type":
+            resp.contentType === "svg" ? "image/svg+xml" : resp.contentType,
         },
       });
     }

@@ -10,7 +10,7 @@ export const loader: LoaderFunction = async ({ params }) => {
   const electrumClient = getElectrumClient(networks.bitcoin);
 
   try {
-    const { result } = await electrumClient.atomicalsGet(id);
+    const { result } = await electrumClient.atomicalsGetState(id, true);
 
     return json(result);
   } catch (e) {

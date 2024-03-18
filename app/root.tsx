@@ -10,11 +10,13 @@ import {
 } from "@remix-run/react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime.js";
+import { useEffect } from "react";
 
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import WalletConnector from "./components/Wallet";
+import { useWallet } from "./components/Wallet/hooks";
 import { Toaster } from "./lib/hooks/useToast";
-import { WalletProvider } from "./lib/hooks/useWallet";
 import styles from "./tailwind.css";
 
 dayjs.extend(relativeTime);
@@ -39,6 +41,18 @@ export const meta: MetaFunction = () => {
 };
 
 export default function App() {
+  const { connect, account } = useWallet();
+
+  useEffect(() => {
+    if (!account) {
+      const wallet = window.localStorage.getItem("wallet") as "unisat" | "wizz";
+
+      if (wallet) {
+        connect(wallet);
+      }
+    }
+  }, [account]);
+
   return (
     <html lang="en">
       <head>
@@ -63,17 +77,16 @@ export default function App() {
           rel="stylesheet"
         />
       </head>
-      <body>
-        <WalletProvider>
-          <Header />
-          <main className="mt-20">
-            <div className="mx-auto max-w-screen-xl px-4 py-8">
-              <Outlet />
-            </div>
-          </main>
-          <Footer />
-          <Toaster />
-        </WalletProvider>
+      <body className="bg-primary text-primary">
+        <Header />
+        <main className="mt-20">
+          <div className="mx-auto max-w-screen-xl px-4 py-8">
+            <Outlet />
+          </div>
+        </main>
+        <WalletConnector />
+        <Footer />
+        <Toaster />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
