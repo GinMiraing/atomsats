@@ -116,3 +116,33 @@ export const getUTXOsInMempool = async (address: string, network: Network) => {
     spent: spentUTXOs,
   };
 };
+
+export const getRecommendedFees = async (network: Network) => {
+  const resp = await AxiosInstance.get<{
+    fastestFee: number;
+    halfHourFee: number;
+    hourFee: number;
+    economyFee: number;
+    minimumFee: number;
+  }>(`${BaseUrl(network)}/v1/fees/recommended`);
+
+  const data = resp.data;
+
+  return [
+    {
+      title: "Low Priority",
+      description: "~1 hour",
+      value: data.hourFee,
+    },
+    {
+      title: "Medium Priority",
+      description: "~30 mins",
+      value: data.halfHourFee,
+    },
+    {
+      title: "High Priority",
+      description: "~10 mins",
+      value: data.fastestFee,
+    },
+  ];
+};

@@ -6,12 +6,12 @@ export const useSetSearch = () => {
   const updateSearchParams = (
     params: Record<string, any>,
     options?: {
-      replace?: boolean;
+      action?: "push" | "replace";
       scroll?: boolean;
     },
   ) => {
     const newSearchParams =
-      options?.replace || false
+      options?.action === "replace"
         ? new URLSearchParams()
         : new URLSearchParams(searchParams);
 
@@ -20,16 +20,21 @@ export const useSetSearch = () => {
     }
 
     Object.entries(params).forEach(([key, value]) => {
-      newSearchParams.set(key, value);
+      if (value) {
+        newSearchParams.set(key, value);
+      } else if (newSearchParams.has(key)) {
+        newSearchParams.delete(key);
+      }
     });
 
     setSearchParams(newSearchParams, {
       replace: true,
-      preventScrollReset: options?.scroll || true,
+      preventScrollReset: options?.scroll === false ? true : false,
     });
   };
 
   return {
+    searchParams,
     updateSearchParams,
   };
 };

@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "@remix-run/react";
 import {
   Compass,
+  Fuel,
   Link2,
   Link2Off,
   Menu,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useGasFee } from "@/lib/hooks/useGasFee";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { cn, formatAddress } from "@/lib/utils";
 
@@ -47,7 +49,20 @@ const Header: React.FC = () => {
   const { isMobile } = useMediaQuery();
   const nagigate = useNavigate();
   const { pathname } = useLocation();
+  const { data: gasFee, mutate: refreshGasFee } = useGasFee();
+
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [avgGasFee, setAvgGasFee] = useState(0);
+
+  useEffect(() => {
+    if (!gasFee) return;
+
+    const avg = gasFee.find((item) => item.title === "Medium Priority");
+
+    if (avg) {
+      setAvgGasFee(avg.value);
+    }
+  }, [gasFee]);
 
   return (
     <header className="fixed left-0 top-0 z-10 flex h-20 w-full items-center justify-between bg-secondary px-4 shadow">
@@ -82,7 +97,11 @@ const Header: React.FC = () => {
           ))}
         </div>
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-1">
+          <Fuel className="h-5 w-5" />
+          <div className="text-sm">{avgGasFee} sat/vB</div>
+        </div>
         {!account && !isMobile && (
           <Button onClick={() => setModalOpen(true)}>Connect</Button>
         )}
