@@ -147,7 +147,9 @@ export default function AtomicalId() {
           },
         })}
         <div className="absolute left-4 top-4 flex rounded-md bg-theme px-2 py-1">
-          {atomical.subtype.toUpperCase() || "NFT"}
+          {atomical.type === "FT"
+            ? "FT"
+            : atomical.subtype?.toUpperCase() || "NFT"}
         </div>
       </div>
       <div className="flex flex-col items-start gap-6 md:flex-row">

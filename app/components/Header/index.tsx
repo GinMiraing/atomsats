@@ -29,18 +29,21 @@ import { useWallet } from "../Wallet/hooks";
 const Navigations = [
   {
     name: "Market",
-    link: "/",
+    link: "/market",
     icon: <Store className="h-6 w-6" />,
+    disable: false,
   },
   {
     name: "Mint",
     link: "/mint",
     icon: <Pickaxe className="h-6 w-6" />,
+    disable: true,
   },
   {
     name: "Explorer",
     link: "/explorer",
     icon: <Compass className="h-6 w-6" />,
+    disable: false,
   },
 ];
 
@@ -81,16 +84,16 @@ const Header: React.FC = () => {
           {Navigations.map((item) => (
             <div
               key={item.name}
-              onClick={() => nagigate(item.link)}
-              className={cn(
-                "cursor-pointer transition-colors hover:text-theme",
-                {
-                  "text-theme":
-                    item.name === "Analysis"
-                      ? pathname === "/"
-                      : pathname.startsWith(item.link),
-                },
-              )}
+              onClick={() => {
+                if (!item.disable) {
+                  nagigate(item.link);
+                }
+              }}
+              className={cn("transition-colors", {
+                "text-theme": pathname.startsWith(item.link) && !item.disable,
+                "cursor-not-allowed text-secondary": item.disable,
+                "cursor-pointer hover:text-theme": !item.disable,
+              })}
             >
               {item.name}
             </div>
