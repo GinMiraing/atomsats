@@ -7,6 +7,7 @@ export const renderAddressPreview = (atomical: {
   atomicalId: string;
   payload: {
     realm?: string;
+    subrealm?: string;
     ticker?: string;
     amount?: number;
     arcs?: boolean;

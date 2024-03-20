@@ -6,7 +6,12 @@ import { ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getElectrumClient } from "@/lib/apis/atomical";
-import { isCONTAINER, isFT, isREALM } from "@/lib/apis/atomical/type";
+import {
+  isCONTAINER,
+  isFT,
+  isREALM,
+  isSubrealm,
+} from "@/lib/apis/atomical/type";
 import { useToast } from "@/lib/hooks/useToast";
 import { formatNumber } from "@/lib/utils";
 import { detectScriptToAddressType } from "@/lib/utils/address-helpers";
@@ -29,6 +34,7 @@ export default function AtomicalId() {
     revealTxid: string;
     revealValue: number;
     realm?: string;
+    subrealm?: string;
     ticker?: string;
     container?: string;
     isArcs: boolean;
@@ -54,6 +60,7 @@ export default function AtomicalId() {
         revealValue: number;
         txs: string[];
         realm?: string;
+        subrealm?: string;
         ticker?: string;
         container?: string;
         isArcs: boolean;
@@ -80,6 +87,8 @@ export default function AtomicalId() {
         atomicalDataTemp.ticker = result.$request_ticker;
       } else if (isREALM(result)) {
         atomicalDataTemp.realm = result.$request_realm;
+      } else if (isSubrealm(result)) {
+        atomicalDataTemp.subrealm = result.$request_full_realm_name;
       }
 
       if ("arcs.txt" in result.mint_data.fields) {
@@ -131,7 +140,7 @@ export default function AtomicalId() {
           subtype: atomical.subtype,
           atomicalId: atomical.atomicalId,
           payload: {
-            realm: atomical.realm,
+            realm: atomical.realm || atomical.subrealm,
             ticker: atomical.ticker,
             container: atomical.container,
             arcs: atomical.isArcs,
@@ -184,7 +193,9 @@ export default function AtomicalId() {
             <div className="flex flex-col space-y-1 px-4 py-2">
               <span className="text-lg text-secondary">MINT TIME</span>
               <span>
-                {dayjs.unix(atomical.mintTime).format("YYYY-MM-DD HH:mm:ss")}
+                {atomical.mintTime > 0
+                  ? dayjs.unix(atomical.mintTime).format("YYYY-MM-DD HH:mm:ss")
+                  : "-"}
               </span>
             </div>
           </div>

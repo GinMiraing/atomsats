@@ -144,11 +144,33 @@ export interface CONTAINERResponse extends BaseAtomicalResponse {
   }[];
 }
 
+export interface SubRealmResponse extends BaseAtomicalResponse {
+  $full_realm_name?: string;
+  $parent_realm?: string;
+  $request_full_realm_name?: string;
+  $request_subrealm?: string;
+  $subrealm?: string;
+  $request_subrealm_status?: {
+    status: string;
+  };
+
+  location_info: {
+    index: number;
+    location: string;
+    script: string;
+    scripthash: string;
+    tx_num: number;
+    txid: string;
+    value: number;
+  }[];
+}
+
 export type AtomicalUnionResponse =
   | FTResponse
   | DMITEMResponse
   | REALMResponse
-  | CONTAINERResponse;
+  | CONTAINERResponse
+  | SubRealmResponse;
 
 export const isFT = (
   atomical: Pick<AtomicalUnionResponse, "type" | "subtype">,
@@ -180,5 +202,14 @@ export const isCONTAINER = (
   return (
     atomical.subtype === AtomicalSubtype.CONTAINER ||
     atomical.subtype === AtomicalSubtype.REQUEST_CONTAINER
+  );
+};
+
+export const isSubrealm = (
+  atomical: Pick<AtomicalUnionResponse, "subtype">,
+): atomical is SubRealmResponse => {
+  return (
+    atomical.subtype === AtomicalSubtype.SUBREALM ||
+    atomical.subtype === AtomicalSubtype.REQUEST_SUBREALM
   );
 };
