@@ -26,4 +26,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ginmiraing/atomsats:release-${{ github.ref_name }}
+          tags: ginmiraing/atomsats:dev
