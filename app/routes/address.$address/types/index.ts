@@ -12,6 +12,7 @@ export type AccountAtomical = {
   requestDmitem?: string;
   requestRealm?: string;
   requestTicker?: string;
+  requestContainer?: string;
   listed?: {
     price: number;
     receiver: string;

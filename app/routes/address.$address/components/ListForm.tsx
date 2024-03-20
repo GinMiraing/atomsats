@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as crypto from "crypto-js";
 import { Loader2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -9,7 +8,6 @@ import AxiosInstance from "@/lib/axios";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useToast } from "@/lib/hooks/useToast";
 import { cn } from "@/lib/utils";
-import { detectAddressTypeToScripthash } from "@/lib/utils/address-helpers";
 import { formatError } from "@/lib/utils/error-helpers";
 
 import { renderAddressPreview } from "@/components/AtomicalPreview";
@@ -27,7 +25,6 @@ import {
 import { Input } from "@/components/Input";
 import { useWallet } from "@/components/Wallet/hooks";
 
-import { useListAtomical } from "../hooks/useList";
 import { AccountAtomical } from "../types";
 
 const FormSchema = z.object({
@@ -49,10 +46,10 @@ const ListForm: React.FC<{
 }> = ({ atomical, utxo, onClose, onSuccess }) => {
   const { account, setModalOpen, connector } = useWallet();
   const { toast } = useToast();
-  const { buildPsbt } = useListAtomical();
   const { isMobile } = useMediaQuery();
 
   const [loading, setLoading] = useState(false);
+  const lastAccount = useRef("");
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
@@ -83,47 +80,56 @@ const ListForm: React.FC<{
         throw new Error("Price must be between 1 and 500,000,000 sats");
       }
 
-      try {
-        detectAddressTypeToScripthash(values.receiver);
-      } catch (e) {
-        throw new Error("Invalid receiver address");
-      }
-
-      AxiosInstance.post("/api/offer/create/lock", {
-        hash: crypto
-          .SHA256(`${atomical.atomicalId}:${account.address}`)
-          .toString(),
-      });
-
-      const unsignedPsbt = await buildPsbt({
-        atomicalId: atomical.atomicalId,
+      const { data: unsignedPsbtResp } = await AxiosInstance.post<{
+        data: {
+          unsignedPsbt: string;
+        };
+        error: false;
+        code: 0;
+      }>("/api/offer/create/psbt", {
         price: intPrice,
         receiver: values.receiver,
-        account,
-        utxo,
-      });
-
-      const signedPsbt = await connector.signPsbt(unsignedPsbt);
-
-      const { data } = await AxiosInstance.post("/api/offer/create", {
+        value: utxo.value,
         atomicalId: atomical.atomicalId,
-        atomicalNumber: atomical.atomicalNumber,
-        type: atomical.subtype,
-        price: intPrice,
         listAccount: account.address,
-        receiver: values.receiver,
-        unsignedPsbt,
-        signedPsbt,
         tx: utxo.txid,
         vout: utxo.vout,
-        value: utxo.value,
-        realm: atomical.requestRealm,
-        dmitem: atomical.requestDmitem,
-        container: atomical.parentContainerName,
+        script: account.script.toString("hex"),
+        pubkey: account.pubkey.toString("hex"),
       });
 
-      if (data.error) {
-        throw new Error(data.code.toString());
+      if (unsignedPsbtResp.error) {
+        throw new Error(unsignedPsbtResp.code.toString());
+      }
+
+      const unsignedPsbt = unsignedPsbtResp.data.unsignedPsbt;
+
+      const signedPsbt = await connector.signPsbt(unsignedPsbt, {
+        autoFinalized: false,
+      });
+
+      const { data: offerResp } = await AxiosInstance.post(
+        "/api/offer/create",
+        {
+          atomicalId: atomical.atomicalId,
+          atomicalNumber: atomical.atomicalNumber,
+          type: atomical.subtype,
+          price: intPrice,
+          listAccount: account.address,
+          receiver: values.receiver,
+          unsignedPsbt,
+          signedPsbt,
+          tx: utxo.txid,
+          vout: utxo.vout,
+          value: utxo.value,
+          realm: atomical.requestRealm,
+          dmitem: atomical.requestDmitem,
+          container: atomical.parentContainerName,
+        },
+      );
+
+      if (offerResp.error) {
+        throw new Error(offerResp.code.toString());
       }
 
       onClose();
@@ -142,13 +148,17 @@ const ListForm: React.FC<{
   };
 
   useEffect(() => {
+    if (account && account.address === lastAccount.current) return;
+
     if (account) {
+      lastAccount.current = account.address;
       form.setValue("receiver", account.address);
     }
   }, [account]);
 
   useEffect(() => {
     if (!atomical) {
+      lastAccount.current = "";
       form.reset({
         price: "0",
         receiver: account?.address || "",
@@ -173,7 +183,7 @@ const ListForm: React.FC<{
           <DrawerHeader>
             {atomical?.listed ? "Edit" : "List"} Your Atomical
           </DrawerHeader>
-          <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-secondary">
+          <div className="bg-card relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md">
             <div className="flex aspect-square w-full items-center justify-center">
               {atomical &&
                 renderAddressPreview({
@@ -285,7 +295,7 @@ const ListForm: React.FC<{
         <DialogHeader>
           {atomical?.listed ? "Edit" : "List"} Your Atomical
         </DialogHeader>
-        <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-secondary">
+        <div className="bg-card relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md">
           <div className="flex aspect-square w-full items-center justify-center">
             {atomical &&
               renderAddressPreview({

@@ -300,6 +300,7 @@ export default function Address() {
                         ticker: atomical.atomical.requestTicker,
                         amount: atomical.utxo.value,
                         arcs: atomical.atomical.isArcs,
+                        container: atomical.atomical.requestContainer,
                       },
                     })}
                     <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">
@@ -354,7 +355,6 @@ export default function Address() {
                         />
                       </div>
                     </div>
-
                     {account && account.address === address && (
                       <div className="flex w-full space-x-2">
                         {atomical.atomical.listed ? (

@@ -87,3 +87,24 @@ model atomical_offer {
 
   @@index([bid, atomical_id])
 }
+
+model atomical_order {
+  id              Int     @id @default(autoincrement())
+  bid             String  @unique @db.Char(64)
+  atomical_id     String  @db.VarChar(255)
+  atomical_number Int     @db.UnsignedInt
+  type            Int     @db.UnsignedTinyInt
+  price           BigInt  @db.UnsignedBigInt
+  status          Int     @db.UnsignedTinyInt
+  list_account    String  @db.VarChar(255)
+  item_receiver   String  @db.VarChar(255)
+  signed_psbt     String  @db.LongText
+  tx              String  @db.Char(64)
+  create_at       Int     @db.UnsignedInt
+  update_at       Int     @db.UnsignedInt
+  realm           String? @db.VarChar(255)
+  dmitem          String? @db.VarChar(255)
+  container       String? @db.VarChar(255)
+
+  @@index([bid, atomical_id])
+}

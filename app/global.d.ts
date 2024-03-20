@@ -6,8 +6,8 @@ export interface Wallet {
   signPsbt: (
     psbtHex: string,
     options?: {
-      autoFinalized: boolean;
-      toSignInputs: {
+      autoFinalized?: boolean;
+      toSignInputs?: {
         index: number;
         address?: string;
         publicKey?: string;

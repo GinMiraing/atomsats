@@ -1,15 +1,17 @@
 import { LoaderFunction, json } from "@remix-run/node";
 import { useLoaderData, useNavigation, useRevalidator } from "@remix-run/react";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useBTCPrice } from "@/lib/hooks/useBTCPrice";
 import DatabaseInstance from "@/lib/server/prisma.server";
 import { OfferSummary } from "@/lib/types/market";
 import { formatNumber, satsToBTC } from "@/lib/utils";
 
+import AtomicalBuyModal from "@/components/AtomicalBuyModal";
 import { renderIndexerPreview } from "@/components/AtomicalPreview";
 import { Button } from "@/components/Button";
+import { useWallet } from "@/components/Wallet/hooks";
 
 import Banner from "./components/Banner";
 
@@ -18,6 +20,7 @@ export const loader: LoaderFunction = async () => {
     const offers = await DatabaseInstance.atomical_offer.findMany({
       select: {
         id: true,
+        list_account: true,
         atomical_id: true,
         atomical_number: true,
         type: true,
@@ -37,6 +40,7 @@ export const loader: LoaderFunction = async () => {
     return json({
       offers: offers.map((offer) => ({
         id: offer.id,
+        lister: offer.list_account,
         atomicalId: offer.atomical_id,
         atomicalNumber: offer.atomical_number,
         type: offer.type === 1 ? "realm" : "dmitem",
@@ -66,6 +70,9 @@ export default function Index() {
   const { BTCPrice } = useBTCPrice();
   const revalidator = useRevalidator();
   const { state } = useNavigation();
+  const { account, setModalOpen } = useWallet();
+
+  const [selectedOffer, setSelectedOffer] = useState<OfferSummary>();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -151,12 +158,33 @@ export default function Index() {
                     <div className="text-sm text-secondary">$-</div>
                   )}
                 </div>
-                <Button className="">Buy Now</Button>
+                <Button
+                  disabled={account && account.address === offer.lister}
+                  onClick={() => {
+                    if (!account) {
+                      setModalOpen(true);
+                      return;
+                    }
+
+                    setSelectedOffer(offer);
+                  }}
+                >
+                  Buy Now
+                </Button>
               </div>
             </div>
           ))}
         </div>
       )}
+      <AtomicalBuyModal
+        offer={selectedOffer}
+        onClose={() => {
+          if (revalidator.state === "idle") {
+            revalidator.revalidate();
+          }
+          setSelectedOffer(undefined);
+        }}
+      />
     </div>
   );
 }

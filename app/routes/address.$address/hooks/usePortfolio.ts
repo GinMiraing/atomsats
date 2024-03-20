@@ -106,6 +106,13 @@ export const usePortfolio = (address: string) => {
             } else if (["decentralized"].includes(matchedAtomical.subtype)) {
               atomicalPayload.requestTicker =
                 matchedAtomical.data.$request_ticker;
+            } else if (
+              ["container", "request_container"].includes(
+                matchedAtomical.subtype,
+              )
+            ) {
+              atomicalPayload.requestContainer =
+                matchedAtomical.data.$request_container;
             } else if ("arcs.txt" in matchedAtomical.data.mint_data.fields) {
               atomicalPayload.isArcs = true;
             }

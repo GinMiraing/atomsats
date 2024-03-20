@@ -6,12 +6,12 @@ import { ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getElectrumClient } from "@/lib/apis/atomical";
-import { isFT } from "@/lib/apis/atomical/type";
+import { isCONTAINER, isFT, isREALM } from "@/lib/apis/atomical/type";
 import { useToast } from "@/lib/hooks/useToast";
-import { formatNumber, getAtomicalContent } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
 import { detectScriptToAddressType } from "@/lib/utils/address-helpers";
 
-import AtomicalRender from "@/components/AtomicalRender/route";
+import { renderIndexerPreview } from "@/components/AtomicalPreview";
 import CopyButton from "@/components/CopyButton";
 
 export default function AtomicalId() {
@@ -28,8 +28,10 @@ export default function AtomicalId() {
     mintTime: number;
     revealTxid: string;
     revealValue: number;
-    contentType: string;
-    content: string;
+    realm?: string;
+    ticker?: string;
+    container?: string;
+    isArcs: boolean;
     txs: string[];
   } | null>(null);
 
@@ -39,7 +41,7 @@ export default function AtomicalId() {
     try {
       setLoading(true);
 
-      const { result } = await electrumClient.atomicalsGet(id);
+      const { result } = await electrumClient.atomicalsGetState(id, true);
 
       const atomicalDataTemp: {
         atomicalId: string;
@@ -50,11 +52,13 @@ export default function AtomicalId() {
         mintTime: number;
         revealTxid: string;
         revealValue: number;
-        contentType: string;
-        content: string;
         txs: string[];
+        realm?: string;
+        ticker?: string;
+        container?: string;
+        isArcs: boolean;
       } = {
-        ...getAtomicalContent(result),
+        isArcs: false,
         atomicalId: result.atomical_id,
         atomicalNumber: result.atomical_number,
         type: result.type,
@@ -69,6 +73,18 @@ export default function AtomicalId() {
         revealValue: result.mint_info.reveal_location_value || 0,
         txs: [],
       };
+
+      if (isCONTAINER(result)) {
+        atomicalDataTemp.container = result.$request_container;
+      } else if (isFT(result)) {
+        atomicalDataTemp.ticker = result.$request_ticker;
+      } else if (isREALM(result)) {
+        atomicalDataTemp.realm = result.$request_realm;
+      }
+
+      if ("arcs.txt" in result.mint_data.fields) {
+        atomicalDataTemp.isArcs = true;
+      }
 
       if (!isFT(result)) {
         const { result: txResult } =
@@ -98,29 +114,34 @@ export default function AtomicalId() {
   }, [params.id]);
 
   if (loading) {
-    return (
-      <div className="mx-auto max-w-screen-xl px-4 py-8">
-        <LoadingSkeleton />
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (!atomical)
     return (
-      <div className="mx-auto flex h-screen max-w-screen-xl items-center justify-center px-4 py-8 text-xl">
+      <div className="flex h-screen items-center justify-center text-xl">
         no atomical data
       </div>
     );
 
   return (
-    <div className="mx-auto max-w-screen-xl px-4 py-8">
-      <div className="relative mx-auto flex aspect-square w-full max-w-[300px] items-center justify-center overflow-hidden rounded-md bg-black text-white">
-        <AtomicalRender atomical={atomical} />
+    <div className="space-y-8">
+      <div className="relative mx-auto flex aspect-square w-full max-w-[300px] items-center justify-center overflow-hidden rounded-md border bg-primary text-white">
+        {renderIndexerPreview({
+          subtype: atomical.subtype,
+          atomicalId: atomical.atomicalId,
+          payload: {
+            realm: atomical.realm,
+            ticker: atomical.ticker,
+            container: atomical.container,
+            arcs: atomical.isArcs,
+          },
+        })}
         <div className="absolute left-4 top-4 flex rounded-md bg-theme px-2 py-1">
           {atomical.subtype.toUpperCase() || "NFT"}
         </div>
       </div>
-      <div className="mt-6 flex flex-col items-start gap-6 md:flex-row">
+      <div className="flex flex-col items-start gap-6 md:flex-row">
         <div className="w-full basis-1/2 overflow-hidden rounded-md border-2">
           <div className="flex h-12 w-full items-center justify-between space-x-1 border-b bg-secondary px-4 text-sm">
             <span className="grid truncate">{atomical.atomicalId}</span>
@@ -210,30 +231,30 @@ export default function AtomicalId() {
 
 const LoadingSkeleton = () => {
   return (
-    <>
-      <div className="mx-auto aspect-square w-full max-w-[300px] animate-pulse overflow-hidden rounded-md bg-gray-300"></div>
-      <div className="mt-6 flex flex-col items-start gap-6 md:flex-row">
+    <div className="space-y-8">
+      <div className="mx-auto aspect-square w-full max-w-[300px] animate-pulse overflow-hidden rounded-md border bg-skeleton"></div>
+      <div className="flex flex-col items-start gap-6 md:flex-row">
         <div className="w-full basis-1/2 overflow-hidden rounded-md border-2">
           <div className="flex h-12 w-full items-center justify-between space-x-1 border-b bg-secondary px-4 text-sm">
-            <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+            <div className="h-4 w-full animate-pulse bg-skeleton"></div>
           </div>
           <div className="divide-y">
             <div className="flex flex-col space-y-1 px-4 py-2">
               <div className="text-lg text-secondary">NUMBER</div>
               <div className="h-6 w-full py-1">
-                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+                <div className="h-4 w-full animate-pulse bg-skeleton"></div>
               </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <div className="text-lg text-secondary">TYPE</div>
               <div className="h-6 w-full py-1">
-                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+                <div className="h-4 w-full animate-pulse bg-skeleton"></div>
               </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <div className="text-lg text-secondary">SUBTYPE</div>
               <div className="h-6 w-full py-1">
-                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+                <div className="h-4 w-full animate-pulse bg-skeleton"></div>
               </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
@@ -242,25 +263,25 @@ const LoadingSkeleton = () => {
                 <CopyButton text={""} />
               </div>
               <div className="h-6 w-full py-1">
-                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+                <div className="h-4 w-full animate-pulse bg-skeleton"></div>
               </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <div className="text-lg text-secondary">REVEAL TXID</div>
               <div className="h-6 w-full py-1">
-                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+                <div className="h-4 w-full animate-pulse bg-skeleton"></div>
               </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <div className="text-lg text-secondary">REVEAL VALUE</div>
               <div className="h-6 w-full py-1">
-                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+                <div className="h-4 w-full animate-pulse bg-skeleton"></div>
               </div>
             </div>
             <div className="flex flex-col space-y-1 px-4 py-2">
               <div className="text-lg text-secondary">MINT TIME</div>
               <div className="h-6 w-full py-1">
-                <div className="h-4 w-full animate-pulse bg-gray-300"></div>
+                <div className="h-4 w-full animate-pulse bg-skeleton"></div>
               </div>
             </div>
           </div>
@@ -275,17 +296,17 @@ const LoadingSkeleton = () => {
           </div>
           <div className="divide-y">
             <div className="flex items-center px-4 py-2">
-              <div className="my-1 h-4 w-full animate-pulse bg-gray-300"></div>
+              <div className="my-1 h-4 w-full animate-pulse bg-skeleton"></div>
             </div>
             <div className="flex items-center px-4 py-2">
-              <div className="my-1 h-4 w-full animate-pulse bg-gray-300"></div>
+              <div className="my-1 h-4 w-full animate-pulse bg-skeleton"></div>
             </div>
             <div className="flex items-center px-4 py-2">
-              <div className="my-1 h-4 w-full animate-pulse bg-gray-300"></div>
+              <div className="my-1 h-4 w-full animate-pulse bg-skeleton"></div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

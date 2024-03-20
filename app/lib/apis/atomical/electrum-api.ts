@@ -245,6 +245,13 @@ export class ElectrumApi implements ElectrumApiInterface {
             status: string;
           };
 
+          // container
+          $request_container?: string;
+          $container?: string;
+          $request_container_status?: {
+            status: string;
+          };
+
           // ft
           $max_mints?: number;
           $max_supply?: number;

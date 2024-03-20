@@ -1,0 +1,92 @@
+import { useEffect, useMemo, useState } from "react";
+
+import { useGasFee } from "@/lib/hooks/useGasFee";
+import { cn } from "@/lib/utils";
+
+import { Input } from "../Input";
+import { Slider } from "../Slider";
+
+const GasFeeSelector: React.FC<{
+  feeRate: number;
+  onFeeRateChange: (feeRate: number) => void;
+}> = ({ feeRate, onFeeRateChange }) => {
+  const [selectedIndex, setSelectedIndex] = useState(2);
+  const { data: gasFees, mutate: refreshGasFees } = useGasFee();
+
+  const minGas = useMemo(() => (gasFees ? gasFees[0].value : 1), [gasFees]);
+
+  useEffect(() => {
+    if (!gasFees) return;
+
+    if (selectedIndex === 3) {
+    } else {
+      const gas = gasFees[selectedIndex];
+      onFeeRateChange(gas.value);
+    }
+  }, [gasFees, selectedIndex]);
+
+  if (!gasFees) return null;
+
+  return (
+    <div className="flex flex-col space-y-4">
+      <div className="grid w-full grid-cols-2 gap-4 lg:grid-cols-4">
+        {gasFees.map((gas, index) => (
+          <div
+            key={gas.title}
+            onClick={() => setSelectedIndex(index)}
+            className={cn(
+              "bg-card flex cursor-pointer flex-col items-center justify-center space-y-4 rounded-md border p-4 transition-colors",
+              {
+                "border-theme": selectedIndex == index,
+              },
+            )}
+          >
+            <div>{gas.description}</div>
+            <div>{gas.value}</div>
+          </div>
+        ))}
+        <div
+          onClick={() => setSelectedIndex(3)}
+          className={cn(
+            "bg-card flex cursor-pointer flex-col items-center justify-center space-y-4 rounded-md border p-4 transition-colors",
+            {
+              "border-theme": selectedIndex === 3,
+            },
+          )}
+        >
+          <div>Custom</div>
+        </div>
+      </div>
+      {selectedIndex === 3 && (
+        <div className="flex w-full items-center space-x-2">
+          <div className="w-full">
+            <Slider
+              max={200}
+              min={minGas}
+              value={
+                feeRate < minGas ? [minGas] : feeRate > 200 ? [200] : [feeRate]
+              }
+              onValueChange={(value) => onFeeRateChange(value[0])}
+            />
+          </div>
+          <Input
+            type="number"
+            value={feeRate === 0 ? undefined : feeRate}
+            min={minGas}
+            step={1}
+            max={200}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (e.target.value.includes("e")) return;
+
+              onFeeRateChange(Number(value));
+            }}
+            className="w-16"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default GasFeeSelector;

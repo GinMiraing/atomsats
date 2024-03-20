@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import DatabaseInstance from "@/lib/server/prisma.server";
 import RedisInstance from "@/lib/server/redis.server";
+import { errorResponse } from "@/lib/utils/error-helpers";
 
 const { SHA256 } = crypto;
 
@@ -34,11 +35,7 @@ export const action: ActionFunction = async ({ request }) => {
     try {
       Schema.parse(data);
     } catch (e) {
-      return json({
-        data: null,
-        error: true,
-        code: 10001,
-      });
+      return json(errorResponse(10001));
     }
 
     try {
@@ -49,11 +46,7 @@ export const action: ActionFunction = async ({ request }) => {
       const exist = await RedisInstance.get(`offer:lock:create:${lockHash}`);
 
       if (!exist) {
-        return json({
-          data: null,
-          error: true,
-          code: 10005,
-        });
+        return json(errorResponse(10005));
       }
 
       const bid = SHA256(
@@ -105,10 +98,6 @@ export const action: ActionFunction = async ({ request }) => {
       code: 0,
     });
   } catch (e) {
-    return json({
-      data: null,
-      error: true,
-      code: 20001,
-    });
+    return json(errorResponse(20001));
   }
 };

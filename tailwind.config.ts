@@ -18,6 +18,7 @@ const config: Config = {
         primary: "var(--background-primary)",
         secondary: "var(--background-secondary)",
         skeleton: "var(--background-skeleton)",
+        card: "var(--background-card)",
       },
       textColor: {
         primary: "var(--font-primary)",
