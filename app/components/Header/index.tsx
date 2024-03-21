@@ -5,7 +5,9 @@ import {
   Link2,
   Link2Off,
   Menu,
+  Minimize2,
   Pickaxe,
+  Search,
   Store,
   Wallet,
 } from "lucide-react";
@@ -15,6 +17,7 @@ import { useGasFee } from "@/lib/hooks/useGasFee";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { cn, formatAddress } from "@/lib/utils";
 
+import AtomicalSearch from "../AtomicalSearch";
 import { Button } from "../Button";
 import CopyButton from "../CopyButton";
 import {
@@ -52,10 +55,12 @@ const Header: React.FC = () => {
   const { isMobile } = useMediaQuery();
   const nagigate = useNavigate();
   const { pathname } = useLocation();
-  const { data: gasFee, mutate: refreshGasFee } = useGasFee();
+  const { data: gasFee } = useGasFee();
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [avgGasFee, setAvgGasFee] = useState(0);
+  const [searchInputOpen, setSearchInputOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
     if (!gasFee) return;
@@ -68,69 +73,106 @@ const Header: React.FC = () => {
   }, [gasFee]);
 
   return (
-    <header className="fixed left-0 top-0 z-10 flex h-20 w-full items-center justify-between bg-secondary px-4 shadow">
-      <div className="flex items-center space-x-10">
-        <div
-          className="flex cursor-pointer items-center space-x-3 text-primary transition-colors hover:text-theme"
-          onClick={() => nagigate("/")}
-        >
-          <img
-            src="/icons/logo.svg"
-            alt="atomical utils"
-          />
-          <div className="text-xl font-bold">AtomSats</div>
+    <header className="fixed left-0 top-0 z-10 flex h-20 w-full items-center bg-secondary px-4 shadow">
+      <div className="relative flex h-full w-full items-center justify-between space-x-4">
+        <div className="flex shrink-0 items-center space-x-10">
+          <div
+            className="flex cursor-pointer items-center space-x-3 text-primary transition-colors hover:text-theme"
+            onClick={() => nagigate("/")}
+          >
+            <img
+              className="h-10 w-10"
+              src="/icons/logo.svg"
+              alt="atomsats"
+            />
+            <div className="text-xl font-bold">AtomSats</div>
+          </div>
+          <div className="hidden items-center space-x-4 text-xl md:flex">
+            {Navigations.map((item) => (
+              <div
+                key={item.name}
+                onClick={() => {
+                  if (!item.disable) {
+                    nagigate(item.link);
+                  }
+                }}
+                className={cn("transition-colors", {
+                  "text-theme": pathname.startsWith(item.link) && !item.disable,
+                  "cursor-not-allowed text-secondary": item.disable,
+                  "cursor-pointer hover:text-theme": !item.disable,
+                })}
+              >
+                {item.name}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="hidden items-center space-x-4 text-xl md:flex">
-          {Navigations.map((item) => (
-            <div
-              key={item.name}
-              onClick={() => {
-                if (!item.disable) {
-                  nagigate(item.link);
-                }
-              }}
-              className={cn("transition-colors", {
-                "text-theme": pathname.startsWith(item.link) && !item.disable,
-                "cursor-not-allowed text-secondary": item.disable,
-                "cursor-pointer hover:text-theme": !item.disable,
-              })}
-            >
-              {item.name}
+        {!isMobile && (
+          <AtomicalSearch
+            searchValue={searchValue}
+            setSearchValue={setSearchValue}
+          />
+        )}
+        <div className="flex shrink-0 items-center space-x-2">
+          {isMobile && (
+            <div className="flex items-center">
+              <Search
+                onClick={() => setSearchInputOpen(true)}
+                className="h-5 w-5 cursor-pointer"
+              />
             </div>
-          ))}
+          )}
+          <div className="flex items-center space-x-1">
+            <Fuel className="h-5 w-5" />
+            <div className="text-nowrap text-sm">{avgGasFee} sat/vB</div>
+          </div>
+          {!account && !isMobile && (
+            <Button onClick={() => setModalOpen(true)}>Connect</Button>
+          )}
+          {account && !isMobile && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="">
+                  <Wallet className="mr-2 h-4 w-4" />
+                  {formatAddress(account.address, 6)}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => nagigate(`/address/${account.address}`)}
+                >
+                  My Assets
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => disconnect()}>
+                  Disconnect
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <Menu
+            className="h-5 w-5 cursor-pointer text-primary transition-colors hover:text-theme md:hidden"
+            onClick={() => setSheetOpen(!sheetOpen)}
+          />
         </div>
       </div>
-      <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-1">
-          <Fuel className="h-5 w-5" />
-          <div className="text-sm">{avgGasFee} sat/vB</div>
-        </div>
-        {!account && !isMobile && (
-          <Button onClick={() => setModalOpen(true)}>Connect</Button>
+      <div
+        className={cn(
+          "absolute left-0 top-0 flex h-20 w-full items-center space-x-4 bg-secondary px-4",
+          {
+            hidden: !isMobile || !searchInputOpen,
+          },
         )}
-        {account && !isMobile && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="">
-                <Wallet className="mr-2 h-4 w-4" />
-                {formatAddress(account.address, 6)}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => nagigate(`/address/${account.address}`)}
-              >
-                My Assets
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => disconnect()}>
-                Disconnect
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-        <Menu
-          className="h-5 w-5 cursor-pointer text-primary transition-colors hover:text-theme md:hidden"
-          onClick={() => setSheetOpen(!sheetOpen)}
+      >
+        <AtomicalSearch
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
+        />
+        <Minimize2
+          className="h-5 w-5 cursor-pointer"
+          onClick={() => {
+            setSearchValue("");
+            setSearchInputOpen(false);
+          }}
         />
       </div>
       <Sheet

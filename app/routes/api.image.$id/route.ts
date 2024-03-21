@@ -29,6 +29,7 @@ export const loader: LoaderFunction = async ({ params }) => {
       });
     }
   } catch (e) {
+    console.log(e);
     return json({
       data: null,
       error: true,

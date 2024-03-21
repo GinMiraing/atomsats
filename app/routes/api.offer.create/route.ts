@@ -12,7 +12,7 @@ const { SHA256 } = crypto;
 const Schema = z.object({
   atomicalId: z.string(),
   atomicalNumber: z.number().int().min(0),
-  type: z.union([z.literal("realm"), z.literal("dmitem")]),
+  type: z.enum(["realm", "dmitem"]),
   price: z.number(),
   listAccount: z.string(),
   receiver: z.string(),
@@ -26,11 +26,11 @@ const Schema = z.object({
   container: z.string().optional(),
 });
 
-type OfferCreateData = z.infer<typeof Schema>;
+type SchemaType = z.infer<typeof Schema>;
 
 export const action: ActionFunction = async ({ request }) => {
   try {
-    const data: OfferCreateData = await request.json();
+    const data: SchemaType = await request.json();
 
     try {
       Schema.parse(data);
@@ -38,22 +38,20 @@ export const action: ActionFunction = async ({ request }) => {
       return json(errorResponse(10001));
     }
 
-    try {
-      const lockHash = SHA256(
-        `${data.atomicalId}:${data.listAccount}`,
-      ).toString();
+    const lockHash = SHA256(
+      `${data.atomicalId}:${data.listAccount}`,
+    ).toString();
 
-      const exist = await RedisInstance.get(`offer:lock:create:${lockHash}`);
+    const exist = await RedisInstance.get(`offer:lock:create:${lockHash}`);
 
-      if (!exist) {
-        return json(errorResponse(10005));
-      }
+    if (!exist) {
+      return json(errorResponse(10005));
+    }
 
-      const bid = SHA256(
-        `${data.atomicalId}:${data.tx}:${data.vout}`,
-      ).toString();
+    const bid = SHA256(`${data.atomicalId}:${data.tx}:${data.vout}`).toString();
 
-      await DatabaseInstance.atomical_offer.upsert({
+    await DatabaseInstance.$transaction([
+      DatabaseInstance.atomical_offer.upsert({
         create: {
           bid,
           atomical_id: data.atomicalId,
@@ -76,6 +74,7 @@ export const action: ActionFunction = async ({ request }) => {
         },
         update: {
           price: data.price,
+          status: 1,
           funding_receiver: data.receiver,
           unsigned_psbt: data.unsignedPsbt,
           signed_psbt: data.signedPsbt,
@@ -84,13 +83,27 @@ export const action: ActionFunction = async ({ request }) => {
         where: {
           bid,
         },
-      });
+      }),
+      data.type === "dmitem"
+        ? DatabaseInstance.atomical_dmitem.updateMany({
+            data: {
+              bid,
+            },
+            where: {
+              atomical_id: data.atomicalId,
+            },
+          })
+        : DatabaseInstance.atomical_realm.updateMany({
+            data: {
+              bid,
+            },
+            where: {
+              atomical_id: data.atomicalId,
+            },
+          }),
+    ]);
 
-      await RedisInstance.del(`offer:lock:create:${lockHash}`);
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
+    await RedisInstance.del(`offer:lock:create:${lockHash}`);
 
     return json({
       data: null,
@@ -98,6 +111,7 @@ export const action: ActionFunction = async ({ request }) => {
       code: 0,
     });
   } catch (e) {
+    console.log(e);
     return json(errorResponse(20001));
   }
 };

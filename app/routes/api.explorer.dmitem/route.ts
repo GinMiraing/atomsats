@@ -32,6 +32,7 @@ export const action: ActionFunction = async () => {
       code: 0,
     });
   } catch (e) {
+    console.log(e);
     return json(errorResponse(20001));
   }
 };

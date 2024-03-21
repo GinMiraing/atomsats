@@ -14,7 +14,7 @@ export const loader: LoaderFunction = async ({ params }) => {
 
     return json(result);
   } catch (e) {
-    console.error(e);
+    console.log(e);
     if (isAxiosError(e)) {
       return json(
         {

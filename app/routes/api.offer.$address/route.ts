@@ -28,6 +28,7 @@ export const action: ActionFunction = async ({ params }) => {
       code: 0,
     });
   } catch (e) {
+    console.log(e);
     return json({
       data: null,
       error: true,

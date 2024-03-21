@@ -16,11 +16,11 @@ const Schema = z.object({
   signedPsbt: z.string(),
 });
 
-type OfferBuyData = z.infer<typeof Schema>;
+type SchemaType = z.infer<typeof Schema>;
 
 export const action: ActionFunction = async ({ request }) => {
   try {
-    const data: OfferBuyData = await request.json();
+    const data: SchemaType = await request.json();
 
     try {
       Schema.parse(data);
@@ -127,7 +127,6 @@ export const action: ActionFunction = async ({ request }) => {
     });
   } catch (e) {
     console.log(e);
-
     return json(errorResponse(20001));
   }
 };

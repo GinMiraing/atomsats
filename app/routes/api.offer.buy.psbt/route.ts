@@ -29,11 +29,11 @@ const Schema = z.object({
   ),
 });
 
-type OfferBuyData = z.infer<typeof Schema>;
+type SchemaType = z.infer<typeof Schema>;
 
 export const action: ActionFunction = async ({ request }) => {
   try {
-    const data: OfferBuyData = await request.json();
+    const data: SchemaType = await request.json();
 
     try {
       Schema.parse(data);
@@ -74,6 +74,8 @@ export const action: ActionFunction = async ({ request }) => {
       return json(errorResponse(10014));
     }
 
+    const serverFee = Math.floor(intPrice * 0.01);
+
     // output_1 => atomical
     // output_2 => funding
     // output_3 => server_fee
@@ -89,18 +91,14 @@ export const action: ActionFunction = async ({ request }) => {
         script: toOutputScript(offer.funding_receiver, networks.bitcoin),
         value: parseInt(offer.price.toString()),
       },
-    ];
-
-    // server fee only if price > 60000
-    if (intPrice >= 60000) {
-      targets.push({
+      {
         script: toOutputScript(
           "bc1qmsly4rlgh7nurv46lyqr3sz7wrc7g0ayaltyya",
           networks.bitcoin,
         ),
-        value: Math.floor(intPrice * 0.01),
-      });
-    }
+        value: serverFee >= 600 ? serverFee : 600,
+      },
+    ];
 
     try {
       const { feeInputs, outputs } = coinselect(

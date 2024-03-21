@@ -146,3 +146,22 @@ export const getRecommendedFees = async (network: Network) => {
     },
   ];
 };
+
+export const getTransaction = async (txid: string, network: Network) => {
+  const resp = await AxiosInstance.get<{
+    txid: string;
+    version: number;
+    locktime: number;
+    size: number;
+    weight: number;
+    fee: number;
+    status: {
+      confirmed: boolean;
+      block_height: number;
+      block_hash: string;
+      block_time: number;
+    };
+  }>(`${BaseUrl(network)}/tx/${txid}`);
+
+  return resp.data.txid;
+};

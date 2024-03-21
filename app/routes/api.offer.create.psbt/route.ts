@@ -28,12 +28,12 @@ const Schema = z.object({
   value: z.number().int().min(0),
 });
 
-type OfferPsbtData = z.infer<typeof Schema>;
+type SchemaType = z.infer<typeof Schema>;
 
 export const action: ActionFunction = async ({ request }) => {
   try {
     const electrum = getElectrumClient(networks.bitcoin);
-    const data: OfferPsbtData = await request.json();
+    const data: SchemaType = await request.json();
 
     try {
       Schema.parse(data);
@@ -124,6 +124,7 @@ export const action: ActionFunction = async ({ request }) => {
       code: 0,
     });
   } catch (e) {
+    console.log(e);
     return json(errorResponse(20001));
   }
 };

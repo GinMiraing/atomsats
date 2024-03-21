@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import AxiosInstance from "@/lib/axios";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useToast } from "@/lib/hooks/useToast";
 import { cn } from "@/lib/utils";
@@ -25,6 +24,7 @@ import {
 import { Input } from "@/components/Input";
 import { useWallet } from "@/components/Wallet/hooks";
 
+import { useListAtomical } from "../hooks/useList";
 import { AccountAtomical } from "../types";
 
 const FormSchema = z.object({
@@ -47,6 +47,7 @@ const ListForm: React.FC<{
   const { account, setModalOpen, connector } = useWallet();
   const { toast } = useToast();
   const { isMobile } = useMediaQuery();
+  const { listAtomical } = useListAtomical();
 
   const [loading, setLoading] = useState(false);
   const lastAccount = useRef("");
@@ -71,67 +72,14 @@ const ListForm: React.FC<{
       return;
     }
 
-    setLoading(true);
-
     try {
-      const intPrice = parseInt(values.price);
-
-      if (intPrice <= 0 || intPrice >= 500000000) {
-        throw new Error("Price must be between 1 and 500,000,000 sats");
-      }
-
-      const { data: unsignedPsbtResp } = await AxiosInstance.post<{
-        data: {
-          unsignedPsbt: string;
-        };
-        error: false;
-        code: 0;
-      }>("/api/offer/create/psbt", {
-        price: intPrice,
+      setLoading(true);
+      await listAtomical({
+        atomical,
+        price: parseInt(values.price),
         receiver: values.receiver,
-        value: utxo.value,
-        atomicalId: atomical.atomicalId,
-        listAccount: account.address,
-        tx: utxo.txid,
-        vout: utxo.vout,
-        script: account.script.toString("hex"),
-        pubkey: account.pubkey.toString("hex"),
+        utxo,
       });
-
-      if (unsignedPsbtResp.error) {
-        throw new Error(unsignedPsbtResp.code.toString());
-      }
-
-      const unsignedPsbt = unsignedPsbtResp.data.unsignedPsbt;
-
-      const signedPsbt = await connector.signPsbt(unsignedPsbt, {
-        autoFinalized: false,
-      });
-
-      const { data: offerResp } = await AxiosInstance.post(
-        "/api/offer/create",
-        {
-          atomicalId: atomical.atomicalId,
-          atomicalNumber: atomical.atomicalNumber,
-          type: atomical.subtype,
-          price: intPrice,
-          listAccount: account.address,
-          receiver: values.receiver,
-          unsignedPsbt,
-          signedPsbt,
-          tx: utxo.txid,
-          vout: utxo.vout,
-          value: utxo.value,
-          realm: atomical.requestRealm,
-          dmitem: atomical.requestDmitem,
-          container: atomical.parentContainerName,
-        },
-      );
-
-      if (offerResp.error) {
-        throw new Error(offerResp.code.toString());
-      }
-
       onClose();
       onSuccess();
     } catch (e) {
@@ -183,7 +131,7 @@ const ListForm: React.FC<{
           <DrawerHeader>
             {atomical?.listed ? "Edit" : "List"} Your Atomical
           </DrawerHeader>
-          <div className="bg-card relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md">
+          <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
             <div className="flex aspect-square w-full items-center justify-center">
               {atomical &&
                 renderAddressPreview({
@@ -295,7 +243,7 @@ const ListForm: React.FC<{
         <DialogHeader>
           {atomical?.listed ? "Edit" : "List"} Your Atomical
         </DialogHeader>
-        <div className="bg-card relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md">
+        <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
           <div className="flex aspect-square w-full items-center justify-center">
             {atomical &&
               renderAddressPreview({

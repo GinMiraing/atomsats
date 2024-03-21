@@ -144,8 +144,8 @@ const AtomicalBuyModal: React.FC<{
 
   const totalCost = useMemo(() => {
     if (!offer) return 0;
-    const serviceFee = offer.price > 60000 ? Math.floor(offer.price * 0.01) : 0;
-    return offer.price + serviceFee;
+    const serviceFee = Math.floor(offer.price * 0.01);
+    return serviceFee >= 600 ? offer.price + serviceFee : offer.price + 600;
   }, [offer]);
 
   useEffect(() => {
@@ -192,7 +192,7 @@ const AtomicalBuyModal: React.FC<{
               </div>
             </div>
           </DrawerHeader>
-          <div className="bg-card relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md">
+          <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
             <div className="flex aspect-square w-full items-center justify-center">
               {offer &&
                 renderAddressPreview({
@@ -245,7 +245,7 @@ const AtomicalBuyModal: React.FC<{
                 />
                 <div className="flex flex-col items-end justify-end space-y-2">
                   <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
-                  <div className="text-sm">{`Service Fee: ${offer && offer.price > 60000 ? Math.floor(offer.price * 0.01) : "0"} sats`}</div>
+                  <div className="text-sm">{`Service Fee: ${offer && Math.floor(offer.price * 0.01) >= 600 ? Math.floor(offer.price * 0.01) : "600"} sats`}</div>
                   <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
                 </div>
               </div>
@@ -293,7 +293,7 @@ const AtomicalBuyModal: React.FC<{
             </div>
           </div>
         </DialogHeader>
-        <div className="bg-card relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md">
+        <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
           <div className="flex aspect-square w-full items-center justify-center">
             {offer &&
               renderAddressPreview({

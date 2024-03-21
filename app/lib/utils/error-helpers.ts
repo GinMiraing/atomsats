@@ -38,6 +38,7 @@ const ErrorMap = {
   "10014": "Price is not an integer",
   "10015": "No available UTXOs",
   "10016": "Psbt not match",
+  "10017": "Invalid signature",
   "20001": "Internal server error",
   "20002": "Market API crashed",
   "20003": "Electrum API failed",

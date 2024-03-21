@@ -1,11 +1,7 @@
 import { LoaderFunction, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { networks } from "bitcoinjs-lib";
-import { useEffect, useMemo, useState } from "react";
-import useSWR from "swr";
+import { useMemo, useState } from "react";
 
-import { getElectrumClient } from "@/lib/apis/atomical";
-import { getAddressBalance, getUTXOsInMempool } from "@/lib/apis/mempool";
 import { useBTCPrice } from "@/lib/hooks/useBTCPrice";
 import { useToast } from "@/lib/hooks/useToast";
 import { formatAddress, formatNumber, satsToBTC } from "@/lib/utils";
@@ -20,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/Tabs";
 import { useWallet } from "@/components/Wallet/hooks";
 
 import ListForm from "./components/ListForm";
+import { useListAtomical } from "./hooks/useList";
 import { usePortfolio } from "./hooks/usePortfolio";
 import { AccountAtomical } from "./types";
 
@@ -69,9 +66,12 @@ export default function Address() {
     address: string;
   }>();
 
+  const { toast } = useToast();
   const { BTCPrice } = useBTCPrice();
   const { account } = useWallet();
-  const { data, mutate } = usePortfolio(address);
+  const { data: userPortfolio, mutate: refreshPortfolio } =
+    usePortfolio(address);
+  const { unlistAtomical } = useListAtomical();
 
   const [atomicalType, setAtomicalType] = useState("all");
   const [listData, setListData] = useState<{
@@ -82,11 +82,12 @@ export default function Address() {
       vout: number;
     };
   }>({});
+  const [loading, setLoading] = useState(false);
 
   const sortedAtomicals = useMemo(() => {
-    if (!data) return [];
+    if (!userPortfolio) return [];
 
-    return data.atomicals.filter((atomical) => {
+    return userPortfolio.atomicals.filter((atomical) => {
       if (atomicalType === "token") {
         return atomical.atomical.type === "FT";
       } else if (atomicalType === "realm") {
@@ -102,12 +103,12 @@ export default function Address() {
         return true;
       }
     });
-  }, [data, atomicalType]);
+  }, [userPortfolio, atomicalType]);
 
   const arc20TokenBalance = useMemo(() => {
-    if (!data || atomicalType !== "token") return {};
+    if (!userPortfolio || atomicalType !== "token") return {};
 
-    return data.atomicals.reduce<{
+    return userPortfolio.atomicals.reduce<{
       [token: string]: {
         balance: number;
       };
@@ -124,9 +125,34 @@ export default function Address() {
 
       return acc;
     }, {});
-  }, [data, atomicalType]);
+  }, [userPortfolio, atomicalType]);
 
-  if (!data) {
+  const unlist = async (
+    atomical: AccountAtomical,
+    utxo: { txid: string; vout: number },
+  ) => {
+    try {
+      setLoading(true);
+      await unlistAtomical({
+        atomicalId: atomical.atomicalId,
+        type: atomical.subtype || "",
+        utxo,
+      });
+      refreshPortfolio();
+    } catch (e) {
+      console.log(e);
+      toast({
+        duration: 2000,
+        variant: "destructive",
+        title: "Unlist failed",
+        description: formatError(e),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!userPortfolio) {
     return (
       <div className="min-h-screen w-full space-y-6">
         <AddressMessage address={address} />
@@ -206,14 +232,14 @@ export default function Address() {
                 alt="btc"
               />
               <div className="font-medium">
-                {satsToBTC(data.balance.availableBalance, {
+                {satsToBTC(userPortfolio.balance.availableBalance, {
                   keepTrailingZeros: true,
                 })}
               </div>
             </div>
             {BTCPrice > 0 ? (
               <div className="text-sm text-secondary">
-                {`$${formatNumber(parseFloat(satsToBTC(data.balance.availableBalance)) * BTCPrice)}`}
+                {`$${formatNumber(parseFloat(satsToBTC(userPortfolio.balance.availableBalance)) * BTCPrice)}`}
               </div>
             ) : (
               <div className="text-sm text-secondary">$-</div>
@@ -227,14 +253,14 @@ export default function Address() {
                 alt="btc"
               />
               <div className="font-medium">
-                {satsToBTC(data.balance.arc20Balance, {
+                {satsToBTC(userPortfolio.balance.arc20Balance, {
                   keepTrailingZeros: true,
                 })}
               </div>
             </div>
             {BTCPrice > 0 ? (
               <div className="text-sm text-secondary">
-                {`$${formatNumber(parseFloat(satsToBTC(data.balance.arc20Balance)) * BTCPrice)}`}
+                {`$${formatNumber(parseFloat(satsToBTC(userPortfolio.balance.arc20Balance)) * BTCPrice)}`}
               </div>
             ) : (
               <div className="text-sm text-secondary">$-</div>
@@ -242,7 +268,7 @@ export default function Address() {
           </div>
           <div className="flex grow flex-col space-y-1 rounded-md bg-secondary px-4 py-2 text-primary">
             <div>NFTs</div>
-            <div>{formatNumber(data.nftCount)}</div>
+            <div>{formatNumber(userPortfolio.nftCount)}</div>
           </div>
         </div>
         <Tabs
@@ -359,7 +385,13 @@ export default function Address() {
                       <div className="flex w-full space-x-2">
                         {atomical.atomical.listed ? (
                           <>
-                            <Button className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme">
+                            <Button
+                              disabled={loading}
+                              onClick={() =>
+                                unlist(atomical.atomical, atomical.utxo)
+                              }
+                              className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme"
+                            >
                               Unlist
                             </Button>
                             <Button
@@ -404,7 +436,7 @@ export default function Address() {
         atomical={listData.atomical}
         utxo={listData.utxo}
         onClose={() => setListData({})}
-        onSuccess={() => mutate()}
+        onSuccess={() => refreshPortfolio()}
       />
     </>
   );

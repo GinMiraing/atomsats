@@ -16,6 +16,10 @@ export interface Wallet {
       }[];
     },
   ) => Promise<string>;
+  signMessage: (
+    message: string,
+    type: "bip322-simple" | "ecdsa",
+  ) => Promise<string>;
   on(event: "accountsChanged", handler: (accounts: string[]) => void): void;
   on(
     event: "networkChanged",

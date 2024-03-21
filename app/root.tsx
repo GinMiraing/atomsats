@@ -24,6 +24,7 @@ dayjs.extend(relativeTime);
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
   { rel: "stylesheet", href: styles },
+  { rel: "icon", type: "image/svg+xml", href: "/icons/logo.svg" },
 ];
 
 export const meta: MetaFunction = () => {
