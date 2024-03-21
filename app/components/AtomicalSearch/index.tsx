@@ -160,7 +160,7 @@ const AtomicalSearch: React.FC<{
         )}
       </div>
       {(searchType || loading) && (
-        <div className="absolute left-0 right-0 top-16 max-h-80 w-full space-y-4 overflow-x-hidden overflow-y-scroll rounded bg-card p-2">
+        <div className="absolute left-0 right-0 top-16 max-h-80 w-full space-y-4 overflow-x-hidden overflow-y-scroll rounded bg-secondary p-2 shadow">
           {loading && (
             <div className="flex h-28 w-full items-center justify-center px-3 py-2">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -179,7 +179,7 @@ const AtomicalSearch: React.FC<{
             </div>
           )}
           {searchType === "tx" &&
-            results.length &&
+            results.length > 0 &&
             results.map(({ tx }) => (
               <a
                 key={tx || ""}
@@ -191,7 +191,7 @@ const AtomicalSearch: React.FC<{
               </a>
             ))}
           {searchType === "atomical" &&
-            results.length &&
+            results.length > 0 &&
             results.map(({ atomicalNumber }) => (
               <div
                 key={atomicalNumber || 0}
@@ -206,7 +206,7 @@ const AtomicalSearch: React.FC<{
               </div>
             ))}
           {searchType === "realm" &&
-            results.length &&
+            results.length > 0 &&
             results.map(({ atomicalNumber, realm }) => (
               <div
                 key={atomicalNumber || 0}
