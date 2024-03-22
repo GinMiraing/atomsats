@@ -22,3 +22,11 @@ export type OrderSummary = {
   createAt: number;
   realm: string;
 };
+
+export type RealmItemSummary = {
+  id: number;
+  atomicalId: string;
+  atomicalNumber: number;
+  name: string;
+  mintTime: number;
+};

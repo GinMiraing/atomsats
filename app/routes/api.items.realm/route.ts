@@ -12,8 +12,8 @@ const Schema = z.object({
   realmFilters: z
     .object({
       name: z.string().optional(),
-      maxLength: z.number().int().min(1).optional(),
-      minLength: z.number().int().min(1).optional(),
+      maxLength: z.number().int().min(0).optional(),
+      minLength: z.number().int().min(0).optional(),
       punycode: z.boolean().optional(),
     })
     .optional(),
@@ -50,7 +50,7 @@ export const action: ActionFunction = async ({ request }) => {
         WHERE status = 1
           ${
             data.realmFilters?.name
-              ? Prisma.sql`AND name LIKE ${`'%${data.realmFilters.name}%'`}`
+              ? Prisma.sql`AND name LIKE ${`%${data.realmFilters.name}%`}`
               : Prisma.empty
           }
           ${
@@ -65,7 +65,7 @@ export const action: ActionFunction = async ({ request }) => {
           }
           ${
             data.realmFilters?.punycode
-              ? Prisma.sql`AND name LIKE '%xn--%'`
+              ? Prisma.sql`AND name LIKE 'xn--%'`
               : Prisma.empty
           }
         ORDER BY ${
@@ -84,7 +84,7 @@ export const action: ActionFunction = async ({ request }) => {
         WHERE status = 1
           ${
             data.realmFilters?.name
-              ? Prisma.sql`AND name LIKE ${`'%${data.realmFilters.name}%'`}`
+              ? Prisma.sql`AND name LIKE ${`%${data.realmFilters.name}%`}`
               : Prisma.empty
           }
           ${
@@ -99,7 +99,7 @@ export const action: ActionFunction = async ({ request }) => {
           }
           ${
             data.realmFilters?.punycode
-              ? Prisma.sql`AND name LIKE '%xn--%'`
+              ? Prisma.sql`AND name LIKE 'xn--%'`
               : Prisma.empty
           }
       `,

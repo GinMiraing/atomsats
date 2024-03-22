@@ -34,7 +34,7 @@ export const action: ActionFunction = async ({ request }) => {
         name
       FROM atomical_realm
       WHERE status = 1
-        AND name like ${`'%${data.realm || ""}%'`}
+        AND name like ${`%${data.realm || ""}%`}
       ORDER BY atomical_number DESC
       LIMIT 15
     `);

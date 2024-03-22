@@ -3,8 +3,10 @@ import { Outlet, useLocation, useNavigate } from "@remix-run/react";
 import { X } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { toASCII } from "tr46";
 import { z } from "zod";
 
+import { useSetSearch } from "@/lib/hooks/useSetSearch";
 import { cn, formatNumber } from "@/lib/utils";
 
 import { Button } from "@/components/Button";
@@ -38,6 +40,7 @@ export default function MarketRealm() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { filterOpen, filters, setFilterOpen, setFilters } = useRealmFilters();
+  const { updateSearchParams } = useSetSearch();
 
   const splitValue = useMemo(() => pathname.split("/")[3], [pathname]);
 
@@ -49,8 +52,20 @@ export default function MarketRealm() {
   useEffect(() => {
     const listener = form.watch((value, { type, name }) => {
       if (type === "valueChange" || "change") {
+        updateSearchParams(
+          { page: "" },
+          {
+            action: "push",
+            scroll: false,
+          },
+        );
+
         setFilters({
-          name: value.name || "",
+          name: value.name
+            ? value.name.startsWith("xn--")
+              ? value.name
+              : toASCII(value.name)
+            : "",
           minLength: value.minLength || "",
           maxLength: value.maxLength || "",
           minPrice: value.minPrice || "",

@@ -17,7 +17,7 @@ const AtomicalSearch: React.FC<{
   searchValue: string;
   setSearchValue: (value: string) => void;
 }> = ({ searchValue, setSearchValue }) => {
-  const debouncedSearchValue = useDebounce(searchValue, 800);
+  const debouncedSearchValue = useDebounce(searchValue, 500);
   const navigate = useNavigate();
   const electrum = getElectrumClient(networks.bitcoin);
 
@@ -67,7 +67,7 @@ const AtomicalSearch: React.FC<{
 
   const fetchRealm = async (name: string) => {
     try {
-      const encode = toASCII(name);
+      const encode = name.startsWith("xn--") ? name : toASCII(name);
       const { data: realms } = await AxiosInstance.post<{
         data: {
           atomicalId: string;

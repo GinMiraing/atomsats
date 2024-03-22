@@ -52,8 +52,8 @@ model atomical_realm {
   bid             String? @db.Char(64)
 
   @@index([atomical_id])
-  @@index([name])
   @@index([status])
+  @@fulltext([name])
 }
 
 model atomical_subrealm {
@@ -94,9 +94,9 @@ model atomical_offer {
   bid              String  @unique @db.Char(64)
 
   @@index([list_account])
-  @@index([realm])
   @@index([status, container])
   @@index([status, type, price])
+  @@fulltext([realm])
 }
 
 model atomical_order {
