@@ -18,6 +18,16 @@ const Schema = z.object({
     "id:asc",
     "id:desc",
   ]),
+  realmFilters: z
+    .object({
+      name: z.string().optional(),
+      maxLength: z.number().int().min(1).optional(),
+      minLength: z.number().int().min(1).optional(),
+      maxPrice: z.number().int().optional(),
+      minPrice: z.number().int().min(0).optional(),
+      punycode: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 type SchemaType = z.infer<typeof Schema>;
@@ -36,85 +46,142 @@ export const action: ActionFunction = async ({ request }) => {
       return json(errorResponse(10001));
     }
 
-    const selectClause: Prisma.atomical_offerSelect = {
-      id: true,
-      list_account: true,
-      atomical_id: true,
-      atomical_number: true,
-      type: true,
-      price: true,
-    };
-
-    if (data.market === "realm") {
-      selectClause.realm = true;
-    } else if (data.market === "all") {
-      selectClause.realm = true;
-      selectClause.dmitem = true;
-      selectClause.container = true;
-    } else if (data.market === "dmitem") {
-      selectClause.dmitem = true;
-    }
-
-    const whereClause: Prisma.atomical_offerWhereInput = {
-      type:
-        data.market === "realm" ? 1 : data.market === "dmitem" ? 2 : undefined,
-      status: 1,
-      container: data.container,
-    };
-
-    const orderByClause: Prisma.atomical_offerOrderByWithAggregationInput[] =
-      [];
-
-    switch (data.sort) {
-      case "id:asc":
-        orderByClause.push({
-          id: "asc",
-        });
-        break;
-      case "id:desc":
-        orderByClause.push({
-          id: "desc",
-        });
-        break;
-      case "number:asc":
-        orderByClause.push({
-          atomical_number: "asc",
-        });
-        break;
-      case "number:desc":
-        orderByClause.push({
-          atomical_number: "desc",
-        });
-        break;
-      case "price:asc":
-        orderByClause.push({
-          price: "asc",
-        });
-        orderByClause.push({
-          id: "desc",
-        });
-        break;
-      case "price:desc":
-        orderByClause.push({
-          price: "desc",
-        });
-        orderByClause.push({
-          id: "desc",
-        });
-        break;
-    }
-
     const [offers, count] = await DatabaseInstance.$transaction([
-      DatabaseInstance.atomical_offer.findMany({
-        select: selectClause,
-        where: whereClause,
-        orderBy: orderByClause,
-        take: data.limit,
-        skip: data.offset,
-      }),
-      DatabaseInstance.atomical_offer.count({
-        where: whereClause,
-      }),
+      DatabaseInstance.$queryRaw<
+        {
+          id: number;
+          list_account: string;
+          atomical_id: string;
+          atomical_number: bigint;
+          type: number;
+          price: bigint;
+          realm?: string;
+          dmitem?: string;
+          container?: string;
+        }[]
+      >`SELECT
+          id,
+          list_account,
+          atomical_id,
+          atomical_number,
+          type,
+          ${
+            data.market === "realm"
+              ? Prisma.sql`realm,`
+              : data.market === "dmitem"
+                ? Prisma.sql`dmitem,`
+                : Prisma.sql`realm, dmitem, container,`
+          }
+          price
+        FROM atomical_offer
+        WHERE status = 1
+          ${
+            data.market === "realm"
+              ? Prisma.sql`AND type = 1`
+              : data.market === "dmitem"
+                ? Prisma.sql`AND type = 2`
+                : Prisma.empty
+          }
+          ${
+            data.container && data.market === "dmitem"
+              ? Prisma.sql`AND container = ${data.container}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.name && data.market === "realm"
+              ? Prisma.sql`AND realm LIKE ${`'%${data.realmFilters.name}%'`}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.minLength && data.market === "realm"
+              ? Prisma.sql`AND CHAR_LENGTH(realm) >= ${data.realmFilters.minLength}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.maxLength && data.market === "realm"
+              ? Prisma.sql`AND CHAR_LENGTH(realm) <= ${data.realmFilters.maxLength}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.minPrice && data.market === "realm"
+              ? Prisma.sql`AND price >= ${data.realmFilters.minPrice}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.maxPrice && data.market === "realm"
+              ? Prisma.sql`AND price <= ${data.realmFilters.maxPrice}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.punycode && data.market === "realm"
+              ? Prisma.sql`AND realm LIKE '%xn--%'`
+              : Prisma.empty
+          }
+        ORDER BY ${
+          data.sort === "id:asc"
+            ? Prisma.sql`id ASC`
+            : data.sort === "id:desc"
+              ? Prisma.sql`id DESC`
+              : data.sort === "number:asc"
+                ? Prisma.sql`atomical_number ASC`
+                : data.sort === "number:desc"
+                  ? Prisma.sql`atomical_number DESC`
+                  : data.sort === "price:asc"
+                    ? Prisma.sql`price ASC, id DESC`
+                    : data.sort === "price:desc"
+                      ? Prisma.sql`price DESC, id DESC`
+                      : Prisma.sql`id DESC`
+        }
+        LIMIT ${data.limit}
+        OFFSET ${data.offset}`,
+      DatabaseInstance.$queryRaw<{ count: bigint }[]>`
+        SELECT
+          COUNT(*) AS count
+        FROM atomical_offer
+        WHERE status = 1
+          ${
+            data.market === "realm"
+              ? Prisma.sql`AND type = 1`
+              : data.market === "dmitem"
+                ? Prisma.sql`AND type = 2`
+                : Prisma.empty
+          }
+          ${
+            data.container && data.market === "dmitem"
+              ? Prisma.sql`AND container = ${data.container}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.name && data.market === "realm"
+              ? Prisma.sql`AND realm LIKE ${`'%${data.realmFilters.name}%'`}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.minLength && data.market === "realm"
+              ? Prisma.sql`AND CHAR_LENGTH(realm) >= ${data.realmFilters.minLength}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.maxLength && data.market === "realm"
+              ? Prisma.sql`AND CHAR_LENGTH(realm) <= ${data.realmFilters.maxLength}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.minPrice && data.market === "realm"
+              ? Prisma.sql`AND price >= ${data.realmFilters.minPrice}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.maxPrice && data.market === "realm"
+              ? Prisma.sql`AND price <= ${data.realmFilters.maxPrice}`
+              : Prisma.empty
+          }
+          ${
+            data.realmFilters?.punycode && data.market === "realm"
+              ? Prisma.sql`AND realm LIKE '%xn--%'`
+              : Prisma.empty
+          }
+      `,
     ]);
 
     return {
@@ -123,14 +190,14 @@ export const action: ActionFunction = async ({ request }) => {
           id: offer.id,
           lister: offer.list_account,
           atomicalId: offer.atomical_id,
-          atomicalNumber: offer.atomical_number,
+          atomicalNumber: parseInt(offer.atomical_number.toString()),
           type: offer.type === 1 ? "realm" : "dmitem",
           price: parseInt(offer.price.toString()),
           realm: offer.realm || "",
           dmitem: offer.dmitem || "",
-          container: offer.container || "",
+          container: offer.container || data.container || "",
         })),
-        count,
+        count: count.length > 0 ? parseInt(count[0].count.toString()) : 0,
       },
       error: false,
       code: 0,

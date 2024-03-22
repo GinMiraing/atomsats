@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextIndex", "fullTextSearch"]
 }
 
 datasource db {
@@ -20,6 +21,8 @@ model atomical_container {
   rank            Int    @db.UnsignedTinyInt
   update_at       Int    @db.UnsignedInt
   icon_url        String @db.VarChar(255)
+
+  @@index([container])
 }
 
 model atomical_dmitem {
@@ -33,7 +36,9 @@ model atomical_dmitem {
   update_at       Int     @db.UnsignedInt
   bid             String? @db.Char(64)
 
-  @@index([atomical_id, container])
+  @@index([atomical_id])
+  @@index([container])
+  @@index([status])
 }
 
 model atomical_realm {
@@ -47,6 +52,8 @@ model atomical_realm {
   bid             String? @db.Char(64)
 
   @@index([atomical_id])
+  @@index([name])
+  @@index([status])
 }
 
 model atomical_subrealm {
@@ -62,6 +69,7 @@ model atomical_subrealm {
   bid             String? @db.Char(64)
 
   @@index([atomical_id])
+  @@index([status])
 }
 
 model atomical_offer {
@@ -85,7 +93,10 @@ model atomical_offer {
   container        String? @db.VarChar(255)
   bid              String  @unique @db.Char(64)
 
-  @@index([bid, atomical_id])
+  @@index([list_account])
+  @@index([realm])
+  @@index([status, container])
+  @@index([status, type, price])
 }
 
 model atomical_order {
@@ -106,5 +117,7 @@ model atomical_order {
   dmitem          String? @db.VarChar(255)
   container       String? @db.VarChar(255)
 
-  @@index([bid, atomical_id])
+  @@index([list_account])
+  @@index([status, container, price])
+  @@index([status, type, price])
 }

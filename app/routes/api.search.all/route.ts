@@ -28,15 +28,15 @@ export const action: ActionFunction = async ({ request }) => {
         name: string;
       }[]
     >(Prisma.sql`
-      select
+      SELECT
         atomical_id,
         atomical_number,
         name
-      from atomical_realm
-      where name like ${`%${data.realm || ""}%`}
-        and status = 1
-      order by atomical_number desc
-      limit 15
+      FROM atomical_realm
+      WHERE status = 1
+        AND name like ${`'%${data.realm || ""}%'`}
+      ORDER BY atomical_number DESC
+      LIMIT 15
     `);
 
     return json({
