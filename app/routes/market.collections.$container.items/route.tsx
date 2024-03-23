@@ -1,12 +1,13 @@
+import { LoaderFunction, json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import dayjs from "dayjs";
-import { LayoutGrid, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
 
-import { useGetRealmItems } from "@/lib/hooks/useGetItems";
+import { useGetContainerItems } from "@/lib/hooks/useGetItems";
 import { useSetSearch } from "@/lib/hooks/useSetSearch";
 
 import { renderIndexerPreview } from "@/components/AtomicalPreview";
-import { Button } from "@/components/Button";
 import EmptyTip from "@/components/EmptyTip";
 import GridList from "@/components/GridList";
 import Pagination from "@/components/Pagination";
@@ -18,13 +19,23 @@ import {
   SelectValue,
 } from "@/components/Select";
 
-import { useRealmFilters } from "../market.realm/hooks/useRealmFilters";
+export const loader: LoaderFunction = async ({ params }) => {
+  const { container } = params as { container: string };
+
+  return json({
+    container,
+  });
+};
 
 const SKELETON_ARRAY = new Array(20).fill(0).map((_, index) => index);
 
-export default function MarketRealmItems() {
-  const { realmItems, realmItemsLoading, realmItemsValidating } =
-    useGetRealmItems();
+export default function MarketContainerItems() {
+  const { container } = useLoaderData<{
+    container: string;
+  }>();
+
+  const { containerItems, containerItemsLoading, containerItemsValidating } =
+    useGetContainerItems(container);
   const { searchParams, updateSearchParams } = useSetSearch();
 
   const page = useMemo(
@@ -32,14 +43,14 @@ export default function MarketRealmItems() {
     [searchParams],
   );
   const total = useMemo(
-    () => (realmItems ? Math.ceil(realmItems.count / 30) : 1),
-    [realmItems],
+    () => (containerItems ? Math.ceil(containerItems.count / 30) : 1),
+    [containerItems],
   );
 
-  if (!realmItems || realmItemsLoading) {
+  if (!containerItems || containerItemsLoading) {
     return (
       <div className="w-full space-y-6">
-        <Filter isValidating={realmItemsValidating} />
+        <Filter isValidating={containerItemsValidating} />
         <GridList>
           {SKELETON_ARRAY.map((index) => (
             <div
@@ -60,38 +71,36 @@ export default function MarketRealmItems() {
 
   return (
     <div className="w-full space-y-6">
-      <Filter isValidating={realmItemsValidating} />
-      {realmItems.realms.length === 0 ? (
+      <Filter isValidating={containerItemsValidating} />
+      {containerItems.dmitems.length === 0 ? (
         <EmptyTip />
       ) : (
         <GridList>
-          {realmItems.realms.map((realm) => (
+          {containerItems.dmitems.map((dmitem) => (
             <div
-              key={realm.atomicalId}
+              key={dmitem.atomicalId}
               className="overflow-hidden rounded-md border"
             >
               <div className="relative flex aspect-square w-full items-center justify-center bg-black text-white">
                 {renderIndexerPreview({
-                  subtype: "realm",
-                  atomicalId: realm.atomicalId,
-                  payload: {
-                    realm: realm.name,
-                  },
+                  subtype: "dmitem",
+                  atomicalId: dmitem.atomicalId,
+                  payload: {},
                 })}
                 <div className="absolute left-3 top-3 flex rounded-md bg-theme px-1 py-0.5 text-xs">
-                  REALM
+                  {dmitem.dmitem?.toUpperCase() || "DMITEM"}
                 </div>
               </div>
               <div className="flex items-center justify-between border-t bg-secondary px-3 py-2">
                 <a
-                  href={`/atomical/${realm.atomicalId}`}
+                  href={`/atomical/${dmitem.atomicalId}`}
                   className="transition-colors hover:text-theme"
                 >
-                  # {realm.atomicalNumber}
+                  # {dmitem.atomicalNumber}
                 </a>
                 <div>
-                  {realm.mintTime > 0
-                    ? dayjs.unix(realm.mintTime).fromNow(true)
+                  {dmitem.mintTime > 0
+                    ? dayjs.unix(dmitem.mintTime).fromNow(true)
                     : ""}
                 </div>
               </div>
@@ -114,13 +123,8 @@ const Filter: React.FC<{
   isValidating: boolean;
 }> = ({ isValidating }) => {
   const { searchParams, updateSearchParams } = useSetSearch();
-  const { setFilterOpen, filters } = useRealmFilters();
 
   const sort = searchParams.get("sort") || "number:desc";
-  const hasFilterValue = useMemo(
-    () => Object.values(filters).some((value) => value),
-    [filters],
-  );
 
   return (
     <div className="flex w-full items-center justify-between">
@@ -132,15 +136,6 @@ const Filter: React.FC<{
         )}
       </div>
       <div className="flex items-center space-x-2">
-        <Button
-          className="relative"
-          onClick={() => setFilterOpen(true)}
-        >
-          <LayoutGrid className="h-4 w-4" />
-          {hasFilterValue && (
-            <div className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-red-500"></div>
-          )}
-        </Button>
         <Select
           value={sort}
           onValueChange={(value) =>
@@ -156,6 +151,8 @@ const Filter: React.FC<{
           <SelectContent>
             <SelectItem value="number:asc">Number: Low to High</SelectItem>
             <SelectItem value="number:desc">Number: High to Low</SelectItem>
+            <SelectItem value="dmitem:asc">Name: Low to High</SelectItem>
+            <SelectItem value="dmitem:desc">Name: High to Low</SelectItem>
           </SelectContent>
         </Select>
       </div>

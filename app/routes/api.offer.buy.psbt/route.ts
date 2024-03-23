@@ -86,7 +86,7 @@ export const action: ActionFunction = async ({ request }) => {
       return json(errorResponse(10014));
     }
 
-    const serverFee = Math.floor(intPrice * 0.01);
+    const serverFee = Math.floor(intPrice * 0.015);
 
     // output_1 => atomical
     // output_2 => funding
@@ -108,7 +108,7 @@ export const action: ActionFunction = async ({ request }) => {
           "bc1qmsly4rlgh7nurv46lyqr3sz7wrc7g0ayaltyya",
           networks.bitcoin,
         ),
-        value: serverFee >= 600 ? serverFee : 600,
+        value: serverFee >= 1000 ? serverFee : 1000,
       },
     ];
 

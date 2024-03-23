@@ -1,7 +1,7 @@
 import useSWR from "swr";
 
 import AxiosInstance from "../axios";
-import { RealmMarketStates } from "../types/market";
+import { CollectionMarketStates, RealmMarketStates } from "../types/market";
 import { formatError } from "../utils/error-helpers";
 import { useToast } from "./useToast";
 
@@ -30,7 +30,7 @@ export const useGetRealmMarketStates = () => {
         toast({
           variant: "destructive",
           duration: 2000,
-          title: "Get offers failed",
+          title: "Get realm states failed",
           description: formatError(e),
         });
       }
@@ -44,5 +44,83 @@ export const useGetRealmMarketStates = () => {
     realmMarketStates: data,
     realmMarketStatesLoading: isLoading,
     realmMarketStatesValidating: isValidating,
+  };
+};
+
+export const useCollectionsMarketStates = () => {
+  const { toast } = useToast();
+
+  const { data, isLoading, isValidating } = useSWR(
+    "states-market-collections",
+    async () => {
+      try {
+        const resp = await AxiosInstance.post<{
+          data: CollectionMarketStates[];
+          error: boolean;
+          code: number;
+        }>("/api/state/market/collections");
+
+        if (resp.data.error) {
+          throw new Error(resp.data.code.toString());
+        }
+
+        return resp.data.data;
+      } catch (e) {
+        toast({
+          duration: 2000,
+          variant: "destructive",
+          title: "Get collections states failed",
+          description: formatError(e),
+        });
+      }
+    },
+    {
+      refreshInterval: 1000 * 60,
+    },
+  );
+
+  return {
+    collections: data,
+    collectionsLoading: isLoading,
+    collectionsValidating: isValidating,
+  };
+};
+
+export const useContainerMarketStates = (container: string) => {
+  const { toast } = useToast();
+
+  const { data, isLoading, isValidating } = useSWR(
+    `states-market-collections-${container}`,
+    async () => {
+      try {
+        const resp = await AxiosInstance.post<{
+          data: Omit<CollectionMarketStates, "container" | "rank">;
+          error: boolean;
+          code: number;
+        }>(`/api/state/market/collections/${container}`);
+
+        if (resp.data.error) {
+          throw new Error(resp.data.code.toString());
+        }
+
+        return resp.data.data;
+      } catch (e) {
+        toast({
+          duration: 2000,
+          variant: "destructive",
+          title: "Get container states failed",
+          description: formatError(e),
+        });
+      }
+    },
+    {
+      refreshInterval: 1000 * 60,
+    },
+  );
+
+  return {
+    containerData: data,
+    containerLoading: isLoading,
+    containerValidating: isValidating,
   };
 };

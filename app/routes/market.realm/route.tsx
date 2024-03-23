@@ -94,7 +94,16 @@ export default function MarketRealm() {
                 alt="btc"
                 className="h-5 w-5"
               />
-              <div>{formatNumber(realmMarketStates.floorPrice)}</div>
+              <div>
+                {formatNumber(
+                  parseFloat(
+                    satsToBTC(realmMarketStates.floorPrice, { digits: 8 }),
+                  ),
+                  {
+                    precision: 6,
+                  },
+                )}
+              </div>
             </div>
           </div>
           <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">

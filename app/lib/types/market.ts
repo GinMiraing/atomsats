@@ -31,7 +31,34 @@ export type RealmItemSummary = {
   mintTime: number;
 };
 
+export type ContainerItemSummary = {
+  id: number;
+  atomicalId: string;
+  atomicalNumber: number;
+  dmitem: string;
+  mintTime: number;
+};
+
 export type RealmMarketStates = {
+  floorPrice: number;
+  listings: number;
+  sales1Day: number;
+  volume1Day: number;
+  volume7Day: number;
+  volumeTotal: number;
+};
+
+export type CollectionMarketStates = {
+  atomicalId: string;
+  atomicalNumber: number;
+  container: string;
+  name: string;
+  deployTime: number;
+  itemCount: number;
+  mintedCount: number;
+  holders: number;
+  iconUrl: string;
+  rank: number;
   floorPrice: number;
   listings: number;
   sales1Day: number;

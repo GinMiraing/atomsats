@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 
 import { useSetSearch } from "@/lib/hooks/useSetSearch";
 
+import { renderIndexerPreview } from "@/components/AtomicalPreview";
 import Pagination from "@/components/Pagination";
 import PunycodeString from "@/components/PunycodeString";
 import {
@@ -127,8 +128,8 @@ const Items: React.FC<{
               key={item}
               className="w-full overflow-hidden rounded-md border shadow-md"
             >
-              <div className="relative aspect-square w-full animate-pulse bg-black"></div>
-              <div className="flex w-full flex-col items-center space-y-4 border-t px-3 py-2">
+              <div className="relative aspect-square w-full animate-pulse bg-skeleton"></div>
+              <div className="flex w-full flex-col items-center space-y-4 border-t bg-secondary px-3 py-2">
                 <div className="flex w-full items-center justify-between">
                   <div className="h-5 w-20 animate-pulse rounded bg-skeleton"></div>
                   <div className="h-5 w-20 animate-pulse rounded bg-skeleton"></div>
@@ -171,20 +172,25 @@ const Items: React.FC<{
             key={item.atomicalId}
             className="w-full overflow-hidden rounded-md border shadow-md"
           >
-            <div className="relative flex aspect-square w-full items-center justify-center bg-black">
-              <img
-                src={`/api/image/${item.atomicalId}`}
-                alt={item.atomicalId}
-                className="h-full w-full"
-                loading="lazy"
-              />
+            <div className="relative flex aspect-square w-full items-center justify-center bg-primary">
+              {renderIndexerPreview({
+                subtype: "dmitem",
+                atomicalId: item.atomicalId,
+                payload: {},
+              })}
               <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">
                 <PunycodeString children={item.dmitem} />
               </div>
             </div>
-            <div className="flex w-full flex-col items-center space-y-4 border-t px-3 py-2">
+            <div className="flex w-full flex-col items-center space-y-4 border-t bg-secondary px-3 py-2">
               <div className="flex w-full items-center justify-between text-sm">
-                <div>#{item.atomicalNumber}</div>
+                <a
+                  href={`/atomical/${item.atomicalId}`}
+                  target="_blank"
+                  className="text-primary transition-colors hover:text-theme"
+                >
+                  #{item.atomicalNumber}
+                </a>
                 <div>{dayjs.unix(item.mintTime).fromNow()}</div>
               </div>
             </div>

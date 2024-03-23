@@ -77,7 +77,9 @@ export default function Index() {
                   setSelectedOffer(offer);
                 }}
               >
-                Buy Now
+                {account && account.address === offer.lister
+                  ? "Your Listing"
+                  : "Buy Now"}
               </Button>
             </AtomicalOfferCard>
           ))}

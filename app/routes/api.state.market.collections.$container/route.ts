@@ -2,13 +2,17 @@ import { ActionFunction, json } from "@remix-run/node";
 
 import DatabaseInstance from "@/lib/server/prisma.server";
 import RedisInstance from "@/lib/server/redis.server";
-import { RealmMarketStates } from "@/lib/types/market";
+import { CollectionMarketStates } from "@/lib/types/market";
 import { getFormattedDatesLastNHours } from "@/lib/utils";
 import { errorResponse } from "@/lib/utils/error-helpers";
 
-export const action: ActionFunction = async () => {
+export const action: ActionFunction = async ({ params }) => {
   try {
-    const cache = await RedisInstance.get("cache:market:state:realm");
+    const { container } = params as { container: string };
+
+    const cache = await RedisInstance.get(
+      `cache:market:state:collections:${container}`,
+    );
 
     if (cache) {
       return json({
@@ -20,7 +24,35 @@ export const action: ActionFunction = async () => {
 
     const dates = getFormattedDatesLastNHours(24 * 7);
 
-    const response: RealmMarketStates = {
+    const containerData = await DatabaseInstance.atomical_container.findFirst({
+      select: {
+        atomical_id: true,
+        atomical_number: true,
+        name: true,
+        deploy_time: true,
+        item_count: true,
+        minted_count: true,
+        holders: true,
+        icon_url: true,
+      },
+      where: {
+        container,
+      },
+    });
+
+    if (!containerData) {
+      return json(errorResponse(10002));
+    }
+
+    const response: Omit<CollectionMarketStates, "container" | "rank"> = {
+      atomicalId: containerData.atomical_id,
+      atomicalNumber: containerData.atomical_number,
+      name: containerData.name,
+      deployTime: containerData.deploy_time,
+      itemCount: containerData.item_count,
+      mintedCount: containerData.minted_count,
+      holders: containerData.holders,
+      iconUrl: containerData.icon_url,
       floorPrice: 0,
       listings: 0,
       sales1Day: 0,
@@ -31,6 +63,7 @@ export const action: ActionFunction = async () => {
 
     const offerState = await DatabaseInstance.$queryRaw<
       {
+        container: string;
         floor: bigint;
         listing: bigint;
       }[]
@@ -40,25 +73,32 @@ export const action: ActionFunction = async () => {
       COUNT(*) as listing
     FROM atomical_offer
     WHERE status = 1
-      AND type = 1
+      AND type = 2
+      AND container = ${container}
     `;
 
     if (offerState && offerState.length > 0) {
       const state = offerState[0];
 
-      response.floorPrice = state.floor ? parseInt(state.floor.toString()) : 0;
+      response.floorPrice = state.floor
+        ? parseInt(state.floor.toString() || "0")
+        : 0;
       response.listings = state.listing
-        ? parseInt(state.listing.toString())
+        ? parseInt(state.listing.toString() || "0")
         : 0;
     }
 
     const [volumes, totalVolume, sales] = await Promise.all([
       RedisInstance.mget(
-        dates.map((date) => `state:market:volumes:realm:${date}`),
+        dates.map(
+          (date) => `state:market:volumes:container:${container}:${date}`,
+        ),
       ),
-      RedisInstance.get(`state:market:volumes:realm:total`),
+      RedisInstance.get(`state:market:volumes:container:${container}:total`),
       RedisInstance.mget(
-        dates.map((date) => `state:market:sales:realm:${date}`),
+        dates.map(
+          (date) => `state:market:sales:container:${container}:${date}`,
+        ),
       ),
     ]);
 
@@ -87,7 +127,7 @@ export const action: ActionFunction = async () => {
     }
 
     RedisInstance.set(
-      "cache:market:state:realm",
+      `cache:market:state:collections:${container}`,
       JSON.stringify(response),
       "EX",
       60 * 5,
@@ -100,6 +140,7 @@ export const action: ActionFunction = async () => {
       code: 0,
     });
   } catch (e) {
+    console.log(e);
     return json(errorResponse(20001));
   }
 };

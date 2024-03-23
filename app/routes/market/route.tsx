@@ -11,22 +11,21 @@ export default function Market() {
       <Tabs
         value={pathname.startsWith("/market/realm") ? "realm" : "collections"}
         className="w-full"
-        onValueChange={(value) => {
-          navigate(`/market/${value}`);
-        }}
       >
         <TabsList className="flex items-center justify-center space-x-4">
           <TabsTrigger
             className="text-lg text-primary transition-colors hover:text-theme-hover data-[state=active]:bg-transparent data-[state=active]:text-theme"
-            value="realm"
+            value="collections"
+            onClick={() => navigate(`/market/collections`)}
           >
-            Realm
+            Collections
           </TabsTrigger>
           <TabsTrigger
             className="text-lg text-primary transition-colors hover:text-theme-hover data-[state=active]:bg-transparent data-[state=active]:text-theme"
-            value="collections"
+            value="realm"
+            onClick={() => navigate(`/market/realm`)}
           >
-            Collections
+            Realm
           </TabsTrigger>
         </TabsList>
       </Tabs>

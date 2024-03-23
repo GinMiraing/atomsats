@@ -6,7 +6,7 @@ import useSWR from "swr";
 import { useRealmFilters } from "@/routes/market.realm/hooks/useRealmFilters";
 
 import AxiosInstance from "../axios";
-import { RealmItemSummary } from "../types/market";
+import { ContainerItemSummary, RealmItemSummary } from "../types/market";
 import { formatError } from "../utils/error-helpers";
 import { useToast } from "./useToast";
 
@@ -75,9 +75,64 @@ export const useGetRealmItems = () => {
   );
 
   return {
-    data,
-    isLoading,
-    isValidating,
-    mutate,
+    realmItems: data,
+    realmItemsLoading: isLoading,
+    realmItemsValidating: isValidating,
+    refreshRealmItems: mutate,
+  };
+};
+
+export const useGetContainerItems = (container: string) => {
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+
+  const page = parseInt(searchParams.get("page") || "1") || 1;
+  const sort = searchParams.get("sort") || "number:desc";
+
+  const key = `items-collections-${page}-${sort}-${container}`;
+
+  const { data, isLoading, isValidating, mutate } = useSWR(
+    key,
+    async () => {
+      try {
+        const { data } = await AxiosInstance.post<{
+          data: {
+            dmitems: ContainerItemSummary[];
+            count: number;
+          };
+          error: boolean;
+          code: number;
+        }>("/api/items/dmitem", {
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
+          sort,
+          container,
+        });
+
+        if (data.error) {
+          throw new Error(data.code.toString());
+        }
+
+        return data.data;
+      } catch (e) {
+        console.log(e);
+        toast({
+          variant: "destructive",
+          duration: 2000,
+          title: "Get items failed",
+          description: formatError(e),
+        });
+      }
+    },
+    {
+      refreshInterval: 1000 * 60,
+    },
+  );
+
+  return {
+    containerItems: data,
+    containerItemsLoading: isLoading,
+    containerItemsValidating: isValidating,
+    refreshContainerItems: mutate,
   };
 };

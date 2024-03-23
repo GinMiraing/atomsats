@@ -404,7 +404,10 @@ export default function Address() {
                           </>
                         ) : (
                           <>
-                            <Button className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme">
+                            <Button
+                              disabled
+                              className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme"
+                            >
                               Transfer
                             </Button>
                             <Button

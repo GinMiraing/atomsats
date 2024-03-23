@@ -135,3 +135,59 @@ export const useGetAllOffers = () => {
     refreshOffers: mutate,
   };
 };
+
+export const useGetDmitemOffers = (container: string) => {
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+
+  const page = parseInt(searchParams.get("page") || "1") || 1;
+  const sort = searchParams.get("sort") || "price:asc";
+
+  const key = `offer-realm-${page}-${sort}-${container}`;
+
+  const { data, isLoading, isValidating, mutate } = useSWR(
+    key,
+    async () => {
+      try {
+        const { data } = await AxiosInstance.post<{
+          data: {
+            offers: OfferSummary[];
+            count: number;
+          };
+          error: boolean;
+          code: number;
+        }>("/api/offer/market", {
+          market: "dmitem",
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
+          sort,
+          container,
+        });
+
+        if (data.error) {
+          throw new Error(data.code.toString());
+        }
+
+        return data.data;
+      } catch (e) {
+        console.log(e);
+        toast({
+          variant: "destructive",
+          duration: 2000,
+          title: "Get offers failed",
+          description: formatError(e),
+        });
+      }
+    },
+    {
+      refreshInterval: 1000 * 10,
+    },
+  );
+
+  return {
+    dmitemOffers: data,
+    dmitemOffersLoading: isLoading,
+    dmitemOffersValidating: isValidating,
+    refreshDmitemOffers: mutate,
+  };
+};

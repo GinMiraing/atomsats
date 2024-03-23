@@ -156,11 +156,16 @@ const AtomicalBuyModal: React.FC<{
     }
   };
 
+  const serviceFee = useMemo(() => {
+    if (!offer) return 0;
+    const fee = Math.floor(offer.price * 0.015);
+    return fee >= 1000 ? fee : 1000;
+  }, [offer]);
+
   const totalCost = useMemo(() => {
     if (!offer) return 0;
-    const serviceFee = Math.floor(offer.price * 0.01);
-    return serviceFee >= 600 ? offer.price + serviceFee : offer.price + 600;
-  }, [offer]);
+    return offer.price + serviceFee;
+  }, [offer, serviceFee]);
 
   useEffect(() => {
     if (account && account.address === lastAccount.current) return;
@@ -260,7 +265,7 @@ const AtomicalBuyModal: React.FC<{
                   />
                   <div className="flex flex-col items-end justify-end space-y-2">
                     <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
-                    <div className="text-sm">{`Service Fee: ${offer && Math.floor(offer.price * 0.01) >= 600 ? Math.floor(offer.price * 0.01) : "600"} sats`}</div>
+                    <div className="text-sm">{`Service Fee( 1.5%, Min 1000 ): ${serviceFee} sats`}</div>
                     <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
                   </div>
                 </div>
@@ -399,7 +404,7 @@ const AtomicalBuyModal: React.FC<{
                 />
                 <div className="flex flex-col items-end justify-end space-y-2">
                   <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
-                  <div className="text-sm">{`Service Fee: ${offer && Math.floor(offer.price * 0.01) >= 600 ? Math.floor(offer.price * 0.01) : "600"} sats`}</div>
+                  <div className="text-sm">{`Service Fee( 1.5%, Min 1000 ): ${serviceFee} sats`}</div>
                   <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
                 </div>
               </div>

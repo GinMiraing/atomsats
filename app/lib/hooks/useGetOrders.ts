@@ -29,12 +29,12 @@ export const useGetMarketOrders = (payload?: {
       try {
         const { data } = await AxiosInstance.post<{
           data: {
-            offers: OrderSummary[];
+            orders: OrderSummary[];
             count: number;
           };
           error: boolean;
           code: number;
-        }>("/api/offer/market", {
+        }>("/api/order/market", {
           market: payload?.market,
           limit: PAGE_SIZE,
           offset: (page - 1) * PAGE_SIZE,
@@ -62,9 +62,9 @@ export const useGetMarketOrders = (payload?: {
   );
 
   return {
-    data,
-    isLoading,
-    isValidating,
-    mutate,
+    orders: data,
+    ordersLoading: isLoading,
+    ordersValidating: isValidating,
+    refreshOrders: mutate,
   };
 };

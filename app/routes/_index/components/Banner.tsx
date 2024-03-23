@@ -6,9 +6,7 @@ const Banner: React.FC = () => {
   return (
     <div className="flex h-80 w-full flex-col items-center justify-center space-y-6">
       <div className="text-4xl font-bold">AtomSats</div>
-      <div className="text-sm">
-        Buy & Mint & Transfer & Deploy & Explore ARC20s more conveniently
-      </div>
+      <div className="text-xl">Unlock Your Atomical NFT Ecosystem</div>
       <div
         onClick={() => navigate("/market")}
         className="group relative cursor-pointer overflow-hidden rounded-md border bg-transparent px-4 py-2 transition-colors group-hover:border-theme-hover"

@@ -30,13 +30,11 @@ export const links: LinksFunction = () => [
 export const meta: MetaFunction = () => {
   return [
     {
-      title:
-        "AtomSats - Buy & Mint & Transfer & Deploy & Explore ARC20s more conveniently",
+      title: "AtomSats - Unlock Your Atomical NFT Ecosystem",
     },
     {
       name: "description",
-      content:
-        "Buy & Mint & Transfer & Deploy & Explore ARC20s more conveniently",
+      content: "Unlock Your Atomical NFT Ecosystem",
     },
   ];
 };
@@ -83,9 +81,9 @@ export default function App() {
           rel="stylesheet"
         />
       </head>
-      <body className="bg-primary text-primary">
+      <body className="h-full w-full bg-primary text-primary">
         <Header />
-        <main className="mt-20">
+        <main className="mt-20 min-h-[calc(100vh-12rem)]">
           <div className="mx-auto max-w-screen-xl px-4 py-8">
             <Outlet />
           </div>

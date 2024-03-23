@@ -1,7 +1,9 @@
-import { LayoutGrid, Loader2 } from "lucide-react";
+import { LoaderFunction, json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+import { Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { useGetRealmOffers } from "@/lib/hooks/useGetOffers";
+import { useGetDmitemOffers } from "@/lib/hooks/useGetOffers";
 import { useSetSearch } from "@/lib/hooks/useSetSearch";
 import { OfferSummary } from "@/lib/types/market";
 
@@ -23,17 +25,27 @@ import {
 } from "@/components/Select";
 import { useWallet } from "@/components/Wallet/hooks";
 
-import { useRealmFilters } from "../market.realm/hooks/useRealmFilters";
+export const loader: LoaderFunction = async ({ params }) => {
+  const { container } = params as { container: string };
+
+  return json({
+    container,
+  });
+};
 
 const SKELETON_ARRAY = new Array(20).fill(0).map((_, index) => index);
 
-export default function MarketRealmListing() {
+export default function MarketContainerListing() {
+  const { container } = useLoaderData<{
+    container: string;
+  }>();
+
   const {
-    realmOffers,
-    realmOffersLoading,
-    realmOffersValidating,
-    refreshRealmOffers,
-  } = useGetRealmOffers();
+    dmitemOffers,
+    dmitemOffersLoading,
+    dmitemOffersValidating,
+    refreshDmitemOffers,
+  } = useGetDmitemOffers(container);
   const { account, setModalOpen } = useWallet();
   const { searchParams, updateSearchParams } = useSetSearch();
 
@@ -42,16 +54,16 @@ export default function MarketRealmListing() {
     [searchParams],
   );
   const total = useMemo(
-    () => (realmOffers ? Math.ceil(realmOffers.count / 30) : 1),
-    [realmOffers],
+    () => (dmitemOffers ? Math.ceil(dmitemOffers.count / 30) : 1),
+    [dmitemOffers],
   );
 
   const [selectedOffer, setSelectedOffer] = useState<OfferSummary>();
 
-  if (!realmOffers || realmOffersLoading) {
+  if (!dmitemOffers || dmitemOffersLoading) {
     return (
       <div className="w-full space-y-6">
-        <Filter isValidating={realmOffersValidating} />
+        <Filter isValidating={dmitemOffersValidating} />
         <GridList>
           {SKELETON_ARRAY.map((index) => (
             <AtomicalOfferCardSkeleton key={index} />
@@ -63,12 +75,12 @@ export default function MarketRealmListing() {
 
   return (
     <div className="w-full space-y-6">
-      <Filter isValidating={realmOffersValidating} />
-      {realmOffers.offers.length === 0 ? (
+      <Filter isValidating={dmitemOffersValidating} />
+      {dmitemOffers.offers.length === 0 ? (
         <EmptyTip />
       ) : (
         <GridList>
-          {realmOffers.offers.map((offer) => (
+          {dmitemOffers.offers.map((offer) => (
             <AtomicalOfferCard
               offer={offer}
               key={offer.id}
@@ -102,8 +114,8 @@ export default function MarketRealmListing() {
       <AtomicalBuyModal
         offer={selectedOffer}
         onClose={() => {
-          if (!realmOffersValidating) {
-            refreshRealmOffers();
+          if (!dmitemOffersValidating) {
+            refreshDmitemOffers();
           }
           setSelectedOffer(undefined);
         }}
@@ -116,13 +128,8 @@ const Filter: React.FC<{
   isValidating: boolean;
 }> = ({ isValidating }) => {
   const { searchParams, updateSearchParams } = useSetSearch();
-  const { filters, setFilterOpen } = useRealmFilters();
 
   const sort = searchParams.get("sort") || "price:asc";
-  const hasFilterValue = useMemo(
-    () => Object.values(filters).some((value) => value),
-    [filters],
-  );
 
   return (
     <div className="flex w-full items-center justify-between">
@@ -134,15 +141,6 @@ const Filter: React.FC<{
         )}
       </div>
       <div className="flex items-center space-x-2">
-        <Button
-          className="relative"
-          onClick={() => setFilterOpen(true)}
-        >
-          <LayoutGrid className="h-4 w-4" />
-          {hasFilterValue && (
-            <div className="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full bg-red-500"></div>
-          )}
-        </Button>
         <Select
           value={sort}
           onValueChange={(value) =>
