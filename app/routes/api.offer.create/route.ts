@@ -1,10 +1,12 @@
 import { ActionFunction, json } from "@remix-run/node";
+import { Psbt } from "bitcoinjs-lib";
 import crypto from "crypto-js";
 import dayjs from "dayjs";
 import { z } from "zod";
 
 import DatabaseInstance from "@/lib/server/prisma.server";
 import RedisInstance from "@/lib/server/redis.server";
+import { validateInputSignature } from "@/lib/utils/bitcoin-utils";
 import { errorResponse } from "@/lib/utils/error-helpers";
 
 const { SHA256 } = crypto;
@@ -48,6 +50,18 @@ export const action: ActionFunction = async ({ request }) => {
       return json(errorResponse(10005));
     }
 
+    // psbt
+    const unsignedPsbt = Psbt.fromHex(data.unsignedPsbt);
+    const signedPsbt = Psbt.fromHex(data.signedPsbt);
+
+    // check psbt signatrue
+    // only input 0
+    if (!validateInputSignature(signedPsbt, 0)) {
+      throw new Error(`Invalid signature of input #0`);
+    }
+
+    signedPsbt.finalizeInput(0);
+
     const bid = SHA256(`${data.atomicalId}:${data.tx}:${data.vout}`).toString();
 
     await DatabaseInstance.$transaction([
@@ -61,8 +75,8 @@ export const action: ActionFunction = async ({ request }) => {
           status: 1,
           list_account: data.listAccount,
           funding_receiver: data.receiver,
-          unsigned_psbt: data.unsignedPsbt,
-          signed_psbt: data.signedPsbt,
+          unsigned_psbt: unsignedPsbt.toHex(),
+          signed_psbt: signedPsbt.toHex(),
           tx: data.tx,
           vout: data.vout,
           value: data.value,

@@ -53,6 +53,7 @@ export const action: ActionFunction = async ({ request }) => {
       return json(errorResponse(10013));
     }
 
+    // check atomical
     const { result } = await electrum.atomicalsGetState(data.atomicalId, true);
 
     if (!result) {
@@ -80,6 +81,7 @@ export const action: ActionFunction = async ({ request }) => {
       return json(errorResponse(10008));
     }
 
+    // build account script
     const accountScript = Buffer.from(data.script, "hex");
     const account: AccountInfo = {
       address: data.listAccount,
@@ -89,11 +91,13 @@ export const action: ActionFunction = async ({ request }) => {
       pubkey: Buffer.from(data.pubkey, "hex"),
     };
 
+    // build psbt
     const psbt = new Psbt({ network: networks.bitcoin });
 
     psbt.addInput({
       hash: data.tx,
       index: data.vout,
+      sighashType: 131,
       witnessUtxo: {
         script: accountScript,
         value: data.value,

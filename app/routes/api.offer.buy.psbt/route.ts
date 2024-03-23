@@ -12,6 +12,17 @@ import {
 import { coinselect, toOutputScript } from "@/lib/utils/bitcoin-utils";
 import { errorResponse } from "@/lib/utils/error-helpers";
 
+const deleteOffer = async (id: number) => {
+  await DatabaseInstance.atomical_offer.update({
+    data: {
+      status: 2,
+    },
+    where: {
+      id,
+    },
+  });
+};
+
 const Schema = z.object({
   offerId: z.number().int().min(0),
   account: z.string(),
@@ -59,6 +70,7 @@ export const action: ActionFunction = async ({ request }) => {
       return json(errorResponse(10002));
     }
 
+    // build account
     const accountScript = Buffer.from(data.script, "hex");
     const account: AccountInfo = {
       address: data.account,
@@ -111,39 +123,57 @@ export const action: ActionFunction = async ({ request }) => {
 
       const psbt = new Psbt({ network: networks.bitcoin });
 
-      const offerPsbt = Psbt.fromHex(offer.unsigned_psbt);
+      try {
+        // only use unsigned psbt
+        const offerPsbt = Psbt.fromHex(offer.unsigned_psbt);
 
-      if (!offerPsbt.txInputs[0] || !offerPsbt.data.inputs[0]) {
+        if (!offerPsbt.txInputs[0] || !offerPsbt.data.inputs[0]) {
+          throw new Error("Invalid PSBT");
+        }
+
+        for (const input of feeInputs) {
+          psbt.addInput(input);
+        }
+
+        // get atomical input
+        const atomInput: {
+          hash: Buffer;
+          index: number;
+          script: Uint8Array;
+          sequence: number;
+          witness: Uint8Array[];
+        } = (offerPsbt.data.globalMap.unsignedTx as any).tx.ins[0];
+
+        // add atomical input at last
+        psbt.addInput({
+          hash: atomInput.hash,
+          index: atomInput.index,
+          sequence: atomInput.sequence,
+          witnessUtxo: offerPsbt.data.inputs[0].witnessUtxo,
+          sighashType: offerPsbt.data.inputs[0].sighashType,
+        });
+
+        for (const output of outputs) {
+          psbt.addOutput(output);
+        }
+
+        await RedisInstance.set(
+          `offer:buy:psbt:unsigned:${offer.bid}`,
+          psbt.toHex(),
+        );
+
+        return json({
+          data: {
+            unsignedPsbt: psbt.toHex(),
+          },
+          error: false,
+          code: 0,
+        });
+      } catch (e) {
+        console.log(e);
+        await deleteOffer(data.offerId);
         return json(errorResponse(10010));
       }
-
-      psbt.addInput({
-        hash: offerPsbt.txInputs[0].hash,
-        index: offerPsbt.txInputs[0].index,
-        sequence: offerPsbt.txInputs[0].sequence,
-        witnessUtxo: offerPsbt.data.inputs[0].witnessUtxo,
-      });
-
-      for (const input of feeInputs) {
-        psbt.addInput(input);
-      }
-
-      for (const output of outputs) {
-        psbt.addOutput(output);
-      }
-
-      await RedisInstance.set(
-        `offer:buy:psbt:unsigned:${offer.bid}`,
-        psbt.toHex(),
-      );
-
-      return json({
-        data: {
-          unsignedPsbt: psbt.toHex(),
-        },
-        error: false,
-        code: 0,
-      });
     } catch (e) {
       return json(errorResponse(10015));
     }

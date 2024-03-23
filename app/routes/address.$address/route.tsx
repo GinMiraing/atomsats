@@ -11,6 +11,8 @@ import { formatError } from "@/lib/utils/error-helpers";
 import { renderAddressPreview } from "@/components/AtomicalPreview";
 import { Button } from "@/components/Button";
 import CopyButton from "@/components/CopyButton";
+import EmptyTip from "@/components/EmptyTip";
+import GridList from "@/components/GridList";
 import PunycodeString from "@/components/PunycodeString";
 import { Tabs, TabsList, TabsTrigger } from "@/components/Tabs";
 import { useWallet } from "@/components/Wallet/hooks";
@@ -69,8 +71,7 @@ export default function Address() {
   const { toast } = useToast();
   const { BTCPrice } = useBTCPrice();
   const { account } = useWallet();
-  const { data: userPortfolio, mutate: refreshPortfolio } =
-    usePortfolio(address);
+  const { portfolio, refreshPortfolio } = usePortfolio(address);
   const { unlistAtomical } = useListAtomical();
 
   const [atomicalType, setAtomicalType] = useState("all");
@@ -85,9 +86,9 @@ export default function Address() {
   const [loading, setLoading] = useState(false);
 
   const sortedAtomicals = useMemo(() => {
-    if (!userPortfolio) return [];
+    if (!portfolio) return [];
 
-    return userPortfolio.atomicals.filter((atomical) => {
+    return portfolio.atomicals.filter((atomical) => {
       if (atomicalType === "token") {
         return atomical.atomical.type === "FT";
       } else if (atomicalType === "realm") {
@@ -103,12 +104,12 @@ export default function Address() {
         return true;
       }
     });
-  }, [userPortfolio, atomicalType]);
+  }, [portfolio, atomicalType]);
 
   const arc20TokenBalance = useMemo(() => {
-    if (!userPortfolio || atomicalType !== "token") return {};
+    if (!portfolio || atomicalType !== "token") return {};
 
-    return userPortfolio.atomicals.reduce<{
+    return portfolio.atomicals.reduce<{
       [token: string]: {
         balance: number;
       };
@@ -125,7 +126,7 @@ export default function Address() {
 
       return acc;
     }, {});
-  }, [userPortfolio, atomicalType]);
+  }, [portfolio, atomicalType]);
 
   const unlist = async (
     atomical: AccountAtomical,
@@ -152,7 +153,7 @@ export default function Address() {
     }
   };
 
-  if (!userPortfolio) {
+  if (!portfolio) {
     return (
       <div className="min-h-screen w-full space-y-6">
         <AddressMessage address={address} />
@@ -209,11 +210,11 @@ export default function Address() {
           </TabsList>
         </Tabs>
         <div className="w-full space-y-4">
-          <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
+          <GridList>
             {SkeletonArray.map((value) => (
               <ItemsSkeleton key={value} />
             ))}
-          </div>
+          </GridList>
         </div>
       </div>
     );
@@ -232,14 +233,14 @@ export default function Address() {
                 alt="btc"
               />
               <div className="font-medium">
-                {satsToBTC(userPortfolio.balance.availableBalance, {
+                {satsToBTC(portfolio.balance.availableBalance, {
                   keepTrailingZeros: true,
                 })}
               </div>
             </div>
             {BTCPrice > 0 ? (
               <div className="text-sm text-secondary">
-                {`$${formatNumber(parseFloat(satsToBTC(userPortfolio.balance.availableBalance)) * BTCPrice)}`}
+                {`$${formatNumber(parseFloat(satsToBTC(portfolio.balance.availableBalance)) * BTCPrice)}`}
               </div>
             ) : (
               <div className="text-sm text-secondary">$-</div>
@@ -253,14 +254,14 @@ export default function Address() {
                 alt="btc"
               />
               <div className="font-medium">
-                {satsToBTC(userPortfolio.balance.arc20Balance, {
+                {satsToBTC(portfolio.balance.arc20Balance, {
                   keepTrailingZeros: true,
                 })}
               </div>
             </div>
             {BTCPrice > 0 ? (
               <div className="text-sm text-secondary">
-                {`$${formatNumber(parseFloat(satsToBTC(userPortfolio.balance.arc20Balance)) * BTCPrice)}`}
+                {`$${formatNumber(parseFloat(satsToBTC(portfolio.balance.arc20Balance)) * BTCPrice)}`}
               </div>
             ) : (
               <div className="text-sm text-secondary">$-</div>
@@ -268,7 +269,7 @@ export default function Address() {
           </div>
           <div className="flex grow flex-col space-y-1 rounded-md bg-secondary px-4 py-2 text-primary">
             <div>NFTs</div>
-            <div>{formatNumber(userPortfolio.nftCount)}</div>
+            <div>{formatNumber(portfolio.nftCount)}</div>
           </div>
         </div>
         <Tabs
@@ -309,7 +310,7 @@ export default function Address() {
             </div>
           )}
           {sortedAtomicals.length > 0 ? (
-            <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
+            <GridList>
               {sortedAtomicals.map((atomical) => (
                 <div
                   key={`${atomical.utxo.txid}:${atomical.utxo.vout}:${atomical.atomical.atomicalId}`}
@@ -424,11 +425,9 @@ export default function Address() {
                   </div>
                 </div>
               ))}
-            </div>
+            </GridList>
           ) : (
-            <div className="flex h-80 w-full items-center justify-center text-xl">
-              No Item Found
-            </div>
+            <EmptyTip />
           )}
         </div>
       </div>

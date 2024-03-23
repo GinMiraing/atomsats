@@ -106,10 +106,19 @@ export const action: ActionFunction = async ({ params }) => {
       return json(errorResponse(10010));
     }
 
-    // check psbt final script
+    // check psbt witness
     const inputData = psbt.data.inputs[0];
 
     if (!inputData.witnessUtxo) {
+      deleteOffer(parseInt(id));
+      return json(errorResponse(10011));
+    }
+
+    const address = detectScriptToAddressType(
+      inputData.witnessUtxo.script.toString("hex"),
+    );
+
+    if (address !== offer.list_account) {
       deleteOffer(parseInt(id));
       return json(errorResponse(10011));
     }

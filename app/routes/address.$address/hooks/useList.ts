@@ -51,10 +51,17 @@ export const useListAtomical = () => {
       throw new Error(unsignedPsbtResp.code.toString());
     }
 
-    const unsignedPsbt = unsignedPsbtResp.data.unsignedPsbt;
+    const unsignedPsbtHex = unsignedPsbtResp.data.unsignedPsbt;
 
-    const signedPsbt = await connector.signPsbt(unsignedPsbt, {
+    const signedPsbt = await connector.signPsbt(unsignedPsbtHex, {
       autoFinalized: false,
+      toSignInputs: [
+        {
+          index: 0,
+          address: account.address,
+          sighashTypes: [131],
+        },
+      ],
     });
 
     const { data: offerResp } = await AxiosInstance.post("/api/offer/create", {
@@ -64,7 +71,7 @@ export const useListAtomical = () => {
       price: data.price,
       listAccount: account.address,
       receiver: data.receiver,
-      unsignedPsbt,
+      unsignedPsbt: unsignedPsbtHex,
       signedPsbt,
       tx: data.utxo.txid,
       vout: data.utxo.vout,
