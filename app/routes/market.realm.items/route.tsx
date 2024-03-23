@@ -7,6 +7,8 @@ import { useSetSearch } from "@/lib/hooks/useSetSearch";
 
 import { renderIndexerPreview } from "@/components/AtomicalPreview";
 import { Button } from "@/components/Button";
+import EmptyTip from "@/components/EmptyTip";
+import GridList from "@/components/GridList";
 import Pagination from "@/components/Pagination";
 import {
   Select,
@@ -39,9 +41,9 @@ export default function MarketRealmItems() {
 
   if (!realmsWithCount || itemsLoading) {
     return (
-      <div className="w-full space-y-4">
+      <div className="w-full space-y-6">
         <Filter isValidating={itemsValidating} />
-        <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
+        <GridList>
           {SKELETON_ARRAY.map((index) => (
             <div
               key={index}
@@ -54,18 +56,18 @@ export default function MarketRealmItems() {
               </div>
             </div>
           ))}
-        </div>
+        </GridList>
       </div>
     );
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-6">
       <Filter isValidating={itemsValidating} />
       {realmsWithCount.realms.length === 0 ? (
-        <div>empty</div>
+        <EmptyTip />
       ) : (
-        <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
+        <GridList>
           {realmsWithCount.realms.map((realm) => (
             <div
               key={realm.atomicalId}
@@ -98,7 +100,7 @@ export default function MarketRealmItems() {
               </div>
             </div>
           ))}
-        </div>
+        </GridList>
       )}
       <Pagination
         page={page}

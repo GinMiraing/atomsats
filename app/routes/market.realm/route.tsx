@@ -6,8 +6,9 @@ import { useForm } from "react-hook-form";
 import { toASCII } from "tr46";
 import { z } from "zod";
 
+import { useGetRealmMarketStates } from "@/lib/hooks/useGetMarketStates";
 import { useSetSearch } from "@/lib/hooks/useSetSearch";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn, formatNumber, satsToBTC } from "@/lib/utils";
 
 import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
@@ -41,6 +42,8 @@ export default function MarketRealm() {
   const navigate = useNavigate();
   const { filterOpen, filters, setFilterOpen, setFilters } = useRealmFilters();
   const { updateSearchParams } = useSetSearch();
+  const { realmMarketStates, realmMarketStatesLoading } =
+    useGetRealmMarketStates();
 
   const splitValue = useMemo(() => pathname.split("/")[3], [pathname]);
 
@@ -79,60 +82,91 @@ export default function MarketRealm() {
 
   return (
     <div className="w-full space-y-6">
-      <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-6 lg:gap-6">
-        <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
-          <div className="text-lg text-secondary">Floor Price</div>
-          <div className="flex items-center space-x-2">
-            <img
-              src="/icons/btc.svg"
-              alt="btc"
-              className="h-5 w-5"
-            />
-            <div>{formatNumber(1000000)}</div>
+      {!realmMarketStates || realmMarketStatesLoading ? (
+        <Skeleton />
+      ) : (
+        <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-6 lg:gap-6">
+          <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+            <div className="text-lg text-secondary">Floor Price</div>
+            <div className="flex items-center space-x-2">
+              <img
+                src="/icons/btc.svg"
+                alt="btc"
+                className="h-5 w-5"
+              />
+              <div>{formatNumber(realmMarketStates.floorPrice)}</div>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+            <div className="text-lg text-secondary">Listings</div>
+            <div>{formatNumber(realmMarketStates.listings)}</div>
+          </div>
+          <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+            <div className="text-lg text-secondary">Sales(24H)</div>
+            <div>{formatNumber(realmMarketStates.sales1Day)}</div>
+          </div>
+          <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+            <div className="text-lg text-secondary">Volume(24H)</div>
+            <div className="flex items-center space-x-2">
+              <img
+                src="/icons/btc.svg"
+                alt="btc"
+                className="h-5 w-5"
+              />
+              <div>
+                {formatNumber(
+                  parseFloat(
+                    satsToBTC(realmMarketStates.volume1Day, { digits: 8 }),
+                  ),
+                  {
+                    precision: 6,
+                  },
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+            <div className="text-lg text-secondary">Volume(7D)</div>
+            <div className="flex items-center space-x-2">
+              <img
+                src="/icons/btc.svg"
+                alt="btc"
+                className="h-5 w-5"
+              />
+              <div>
+                {formatNumber(
+                  parseFloat(
+                    satsToBTC(realmMarketStates.volume7Day, { digits: 8 }),
+                  ),
+                  {
+                    precision: 6,
+                  },
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+            <div className="text-lg text-secondary">Volume Total</div>
+            <div className="flex items-center space-x-2">
+              <img
+                src="/icons/btc.svg"
+                alt="btc"
+                className="h-5 w-5"
+              />
+              <div>
+                {formatNumber(
+                  parseFloat(
+                    satsToBTC(realmMarketStates.volumeTotal, { digits: 8 }),
+                  ),
+                  {
+                    precision: 6,
+                  },
+                )}
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
-          <div className="text-lg text-secondary">Listings</div>
-          <div>{formatNumber(100)}</div>
-        </div>
-        <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
-          <div className="text-lg text-secondary">Sales(24H)</div>
-          <div>{formatNumber(100)}</div>
-        </div>
-        <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
-          <div className="text-lg text-secondary">Volume(24H)</div>
-          <div className="flex items-center space-x-2">
-            <img
-              src="/icons/btc.svg"
-              alt="btc"
-              className="h-5 w-5"
-            />
-            <div>{formatNumber(1000000)}</div>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
-          <div className="text-lg text-secondary">Volume(7D)</div>
-          <div className="flex items-center space-x-2">
-            <img
-              src="/icons/btc.svg"
-              alt="btc"
-              className="h-5 w-5"
-            />
-            <div>{formatNumber(1000000)}</div>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
-          <div className="text-lg text-secondary">Volume Total</div>
-          <div className="flex items-center space-x-2">
-            <img
-              src="/icons/btc.svg"
-              alt="btc"
-              className="h-5 w-5"
-            />
-            <div>{formatNumber(1000000)}</div>
-          </div>
-        </div>
-      </div>
+      )}
       <Tabs
         value={splitValue}
         className="border-b"
@@ -354,3 +388,62 @@ export default function MarketRealm() {
     </div>
   );
 }
+
+const Skeleton = () => {
+  return (
+    <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-6 lg:gap-6">
+      <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+        <div className="text-lg text-secondary">Floor Price</div>
+        <div className="flex items-center space-x-2">
+          <img
+            src="/icons/btc.svg"
+            alt="btc"
+            className="h-5 w-5"
+          />
+          <div className="h-6 w-20 animate-pulse rounded-md bg-skeleton"></div>
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+        <div className="text-lg text-secondary">Listings</div>
+        <div className="h-6 w-20 animate-pulse rounded-md bg-skeleton"></div>
+      </div>
+      <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+        <div className="text-lg text-secondary">Sales(24H)</div>
+        <div className="h-6 w-20 animate-pulse rounded-md bg-skeleton"></div>
+      </div>
+      <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+        <div className="text-lg text-secondary">Volume(24H)</div>
+        <div className="flex items-center space-x-2">
+          <img
+            src="/icons/btc.svg"
+            alt="btc"
+            className="h-5 w-5"
+          />
+          <div className="h-6 w-20 animate-pulse rounded-md bg-skeleton"></div>
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+        <div className="text-lg text-secondary">Volume(7D)</div>
+        <div className="flex items-center space-x-2">
+          <img
+            src="/icons/btc.svg"
+            alt="btc"
+            className="h-5 w-5"
+          />
+          <div className="h-6 w-20 animate-pulse rounded-md bg-skeleton"></div>
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center space-y-4 overflow-hidden rounded-md bg-secondary p-4">
+        <div className="text-lg text-secondary">Volume Total</div>
+        <div className="flex items-center space-x-2">
+          <img
+            src="/icons/btc.svg"
+            alt="btc"
+            className="h-5 w-5"
+          />
+          <div className="h-6 w-20 animate-pulse rounded-md bg-skeleton"></div>
+        </div>
+      </div>
+    </div>
+  );
+};

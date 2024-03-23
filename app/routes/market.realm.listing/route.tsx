@@ -1,6 +1,5 @@
-import { useSearchParams } from "@remix-run/react";
 import { LayoutGrid, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useGetRealmOffers } from "@/lib/hooks/useGetOffers";
 import { useSetSearch } from "@/lib/hooks/useSetSearch";
@@ -12,6 +11,9 @@ import {
   AtomicalOfferCardSkeleton,
 } from "@/components/AtomicalOfferCard";
 import { Button } from "@/components/Button";
+import EmptyTip from "@/components/EmptyTip";
+import GridList from "@/components/GridList";
+import Pagination from "@/components/Pagination";
 import {
   Select,
   SelectContent,
@@ -27,36 +29,46 @@ const SKELETON_ARRAY = new Array(20).fill(0).map((_, index) => index);
 
 export default function MarketRealmListing() {
   const {
-    data: offersWithCount,
-    isLoading: offersLoading,
-    isValidating: offerValidating,
-    mutate: refreshOffers,
+    realmOffers,
+    realmOffersLoading,
+    realmOffersValidating,
+    refreshRealmOffers,
   } = useGetRealmOffers();
   const { account, setModalOpen } = useWallet();
+  const { searchParams, updateSearchParams } = useSetSearch();
+
+  const page = useMemo(
+    () => parseInt(searchParams.get("page") || "1") || 1,
+    [searchParams],
+  );
+  const total = useMemo(
+    () => (realmOffers ? Math.ceil(realmOffers.count / 30) : 1),
+    [realmOffers],
+  );
 
   const [selectedOffer, setSelectedOffer] = useState<OfferSummary>();
 
-  if (!offersWithCount || offersLoading) {
+  if (!realmOffers || realmOffersLoading) {
     return (
-      <div className="w-full space-y-4">
-        <Filter isValidating={offerValidating} />
-        <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
+      <div className="w-full space-y-6">
+        <Filter isValidating={realmOffersValidating} />
+        <GridList>
           {SKELETON_ARRAY.map((index) => (
             <AtomicalOfferCardSkeleton key={index} />
           ))}
-        </div>
+        </GridList>
       </div>
     );
   }
 
   return (
-    <div className="w-full space-y-4">
-      <Filter isValidating={offerValidating} />
-      {offersWithCount.offers.length === 0 ? (
-        <div>empty</div>
+    <div className="w-full space-y-6">
+      <Filter isValidating={realmOffersValidating} />
+      {realmOffers.offers.length === 0 ? (
+        <EmptyTip />
       ) : (
-        <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
-          {offersWithCount.offers.map((offer) => (
+        <GridList>
+          {realmOffers.offers.map((offer) => (
             <AtomicalOfferCard
               offer={offer}
               key={offer.id}
@@ -76,13 +88,20 @@ export default function MarketRealmListing() {
               </Button>
             </AtomicalOfferCard>
           ))}
-        </div>
+        </GridList>
       )}
+      <Pagination
+        page={page}
+        total={total}
+        onPageChange={(value) =>
+          updateSearchParams({ page: value }, { action: "push", scroll: false })
+        }
+      />
       <AtomicalBuyModal
         offer={selectedOffer}
         onClose={() => {
-          if (!offerValidating) {
-            refreshOffers();
+          if (!realmOffersValidating) {
+            refreshRealmOffers();
           }
           setSelectedOffer(undefined);
         }}
