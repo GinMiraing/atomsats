@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { useWallet } from "@/components/Wallet/hooks";
 
 import { getElectrumClient } from "../apis/atomical";
+import { getUTXOsInMempool } from "../apis/mempool";
 import { UTXO } from "../types";
 import { detectAddressTypeToScripthash } from "../utils/address-helpers";
 
@@ -17,11 +18,32 @@ export const usePureUTXOs = () => {
     async () => {
       if (!account) return [];
 
+      const inMempoolUTXOs = await getUTXOsInMempool(
+        account.address,
+        networks.bitcoin,
+      );
+
+      const unavailableUTXOs = [
+        ...inMempoolUTXOs.receive,
+        ...inMempoolUTXOs.spent,
+      ];
+
       const { utxos } = await electrum.atomicalsByAddress(account.address);
+
+      const availableUTXOs = utxos.filter((utxo) => {
+        const matchedIndex = unavailableUTXOs.findIndex((unavailableUTXO) => {
+          return (
+            unavailableUTXO.txid === utxo.txid &&
+            unavailableUTXO.vout === utxo.index
+          );
+        });
+
+        return matchedIndex === -1;
+      });
 
       const { output } = detectAddressTypeToScripthash(account.address);
 
-      return utxos.reduce<UTXO[]>((acc, cur) => {
+      return availableUTXOs.reduce<UTXO[]>((acc, cur) => {
         if (cur.atomicals.length !== 0) {
           return acc;
         }
