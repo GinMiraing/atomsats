@@ -121,6 +121,10 @@ export const action: ActionFunction = async ({ request }) => {
         [{ value: offer.value }],
       );
 
+      if (feeInputs.length > 1) {
+        throw new Error("Too many fee inputs");
+      }
+
       const psbt = new Psbt({ network: networks.bitcoin });
 
       try {

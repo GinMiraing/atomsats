@@ -18,6 +18,18 @@ export const usePureUTXOs = () => {
     async () => {
       if (!account) return [];
 
+      const safeUTXOs = window.localStorage.getItem(
+        `safeUTXOs-${account.address}`,
+      );
+
+      let safeUTXOsParsed: {
+        [tx: string]: number;
+      } = {};
+
+      try {
+        safeUTXOsParsed = JSON.parse(safeUTXOs || "{}");
+      } catch (e) {}
+
       const inMempoolUTXOs = await getUTXOsInMempool(
         account.address,
         networks.bitcoin,
@@ -43,7 +55,7 @@ export const usePureUTXOs = () => {
 
       const { output } = detectAddressTypeToScripthash(account.address);
 
-      return availableUTXOs.reduce<UTXO[]>((acc, cur) => {
+      const UTXOs = availableUTXOs.reduce<UTXO[]>((acc, cur) => {
         if (cur.atomicals.length !== 0) {
           return acc;
         }
@@ -57,6 +69,16 @@ export const usePureUTXOs = () => {
 
         return acc;
       }, []);
+
+      UTXOs.push(
+        ...inMempoolUTXOs.receive.filter(
+          (utxo) =>
+            safeUTXOsParsed[utxo.txid] &&
+            utxo.vout === safeUTXOsParsed[utxo.txid],
+        ),
+      );
+
+      return UTXOs;
     },
     {
       refreshInterval: 1000 * 60,

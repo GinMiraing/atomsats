@@ -250,7 +250,14 @@ export const action: ActionFunction = async ({ request }) => {
     ]);
 
     return json({
-      data: rawTx.getId(),
+      data: {
+        tx: rawTx.getId(),
+        refundVout:
+          signedPsbt.txOutputs[signedPsbt.txOutputs.length - 1].address ===
+          data.account
+            ? signedPsbt.txOutputs.length - 1
+            : null,
+      },
       error: false,
       code: 0,
     });

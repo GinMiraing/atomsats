@@ -128,7 +128,10 @@ const AtomicalBuyModal: React.FC<{
       });
 
       const { data: buyResp } = await AxiosInstance.post<{
-        data: string;
+        data: {
+          tx: string;
+          refundVout: number | null;
+        };
         error: boolean;
         code: number;
       }>("/api/offer/buy", {
@@ -142,7 +145,16 @@ const AtomicalBuyModal: React.FC<{
         throw new Error(buyResp.code.toString());
       }
 
-      setPushedTx(buyResp.data);
+      if (buyResp.data.refundVout !== null) {
+        window.localStorage.setItem(
+          `safeUTXOs-${account.address}`,
+          JSON.stringify({
+            [buyResp.data.tx]: buyResp.data.refundVout,
+          }),
+        );
+      }
+
+      setPushedTx(buyResp.data.tx);
     } catch (e) {
       console.log(e);
       toast({
