@@ -55,7 +55,7 @@ const Header: React.FC = () => {
   const { isMobile } = useMediaQuery();
   const nagigate = useNavigate();
   const { pathname } = useLocation();
-  const { data: gasFee } = useGasFee();
+  const { gasFee } = useGasFee();
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [avgGasFee, setAvgGasFee] = useState(0);

@@ -180,7 +180,7 @@ export const usePortfolio = (address: string) => {
   );
 
   return {
-    data,
-    mutate,
+    portfolio: data,
+    refreshPortfolio: mutate,
   };
 };

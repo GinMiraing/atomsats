@@ -165,3 +165,12 @@ export const getTransaction = async (txid: string, network: Network) => {
 
   return resp.data.txid;
 };
+
+export const pushTx = async (network: Network, rawTx: string) => {
+  const resp = await AxiosInstance.post<string>(
+    `${BaseUrl(network)}/tx`,
+    rawTx,
+  );
+  const txId = resp.data;
+  return txId;
+};

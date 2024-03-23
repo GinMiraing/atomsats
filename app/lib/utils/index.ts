@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import dayjs from "dayjs";
 import { twMerge } from "tailwind-merge";
 
 import {
@@ -127,4 +128,13 @@ export const getAtomicalContent = (atomical: AtomicalUnionResponse) => {
   }
 
   return result;
+};
+
+export const getFormattedDatesLastNHours = (n: number) => {
+  const dates: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const date = dayjs().subtract(i, "hour").format("YYYY:MM:DD:HH");
+    dates.push(date);
+  }
+  return dates;
 };

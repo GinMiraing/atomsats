@@ -10,6 +10,8 @@ import {
   AtomicalOfferCardSkeleton,
 } from "@/components/AtomicalOfferCard";
 import { Button } from "@/components/Button";
+import EmptyTip from "@/components/EmptyTip";
+import GridList from "@/components/GridList";
 import { useWallet } from "@/components/Wallet/hooks";
 
 import Banner from "./components/Banner";
@@ -17,32 +19,29 @@ import Banner from "./components/Banner";
 const SKELETON_ARRAY = new Array(20).fill(0).map((_, index) => index);
 
 export default function Index() {
-  const {
-    data: offersWithCount,
-    isValidating: offerValidating,
-    mutate: refreshOffers,
-  } = useGetAllOffers();
+  const { offers, offersValidating, offersLoading, refreshOffers } =
+    useGetAllOffers();
   const { account, setModalOpen } = useWallet();
 
   const [selectedOffer, setSelectedOffer] = useState<OfferSummary>();
 
-  if (!offersWithCount) {
+  if (!offers || offersLoading) {
     return (
       <div className="w-full space-y-4">
         <Banner />
         <div className="flex w-full items-center justify-between border-b py-2">
           <div className="text-xl">Recent Listing</div>
-          {offerValidating ? (
+          {offersValidating ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <div className="h-1.5 w-1.5 animate-ping rounded-full bg-green-400"></div>
           )}
         </div>
-        <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
+        <GridList>
           {SKELETON_ARRAY.map((index) => (
             <AtomicalOfferCardSkeleton key={index} />
           ))}
-        </div>
+        </GridList>
       </div>
     );
   }
@@ -52,17 +51,17 @@ export default function Index() {
       <Banner />
       <div className="flex w-full items-center justify-between border-b py-2">
         <div className="text-xl">Recent Listing</div>
-        {offerValidating ? (
+        {offersValidating ? (
           <Loader2 className="h-5 w-5 animate-spin" />
         ) : (
           <div className="h-1.5 w-1.5 animate-ping rounded-full bg-green-400"></div>
         )}
       </div>
-      {offersWithCount.offers.length === 0 ? (
-        <div>empty</div>
+      {offers.offers.length === 0 ? (
+        <EmptyTip />
       ) : (
-        <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5 xl:gap-6">
-          {offersWithCount.offers.map((offer) => (
+        <GridList>
+          {offers.offers.map((offer) => (
             <AtomicalOfferCard
               offer={offer}
               key={offer.id}
@@ -82,12 +81,12 @@ export default function Index() {
               </Button>
             </AtomicalOfferCard>
           ))}
-        </div>
+        </GridList>
       )}
       <AtomicalBuyModal
         offer={selectedOffer}
         onClose={() => {
-          if (!offerValidating) {
+          if (!offersValidating) {
             refreshOffers();
           }
           setSelectedOffer(undefined);

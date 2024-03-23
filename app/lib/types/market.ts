@@ -30,3 +30,12 @@ export type RealmItemSummary = {
   name: string;
   mintTime: number;
 };
+
+export type RealmMarketStates = {
+  floorPrice: number;
+  listings: number;
+  sales1Day: number;
+  volume1Day: number;
+  volume7Day: number;
+  volumeTotal: number;
+};

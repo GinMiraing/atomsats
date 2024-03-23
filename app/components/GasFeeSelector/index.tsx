@@ -11,31 +11,31 @@ const GasFeeSelector: React.FC<{
   onFeeRateChange: (feeRate: number) => void;
 }> = ({ feeRate, onFeeRateChange }) => {
   const [selectedIndex, setSelectedIndex] = useState(2);
-  const { data: gasFees, mutate: refreshGasFees } = useGasFee();
+  const { gasFee, refreshGasFee } = useGasFee();
 
-  const minGas = useMemo(() => (gasFees ? gasFees[0].value : 1), [gasFees]);
+  const minGas = useMemo(() => (gasFee ? gasFee[0].value : 1), [gasFee]);
 
   useEffect(() => {
-    if (!gasFees) return;
+    if (!gasFee) return;
 
     if (selectedIndex === 3) {
     } else {
-      const gas = gasFees[selectedIndex];
+      const gas = gasFee[selectedIndex];
       onFeeRateChange(gas.value);
     }
-  }, [gasFees, selectedIndex]);
+  }, [gasFee, selectedIndex]);
 
-  if (!gasFees) return null;
+  if (!gasFee) return null;
 
   return (
     <div className="flex flex-col space-y-4">
       <div className="grid w-full grid-cols-2 gap-4 lg:grid-cols-4">
-        {gasFees.map((gas, index) => (
+        {gasFee.map((gas, index) => (
           <div
             key={gas.title}
             onClick={() => setSelectedIndex(index)}
             className={cn(
-              "bg-card flex cursor-pointer flex-col items-center justify-center space-y-4 rounded-md border p-4 transition-colors",
+              "flex cursor-pointer flex-col items-center justify-center space-y-4 rounded-md border bg-card p-4 transition-colors",
               {
                 "border-theme": selectedIndex == index,
               },
@@ -48,7 +48,7 @@ const GasFeeSelector: React.FC<{
         <div
           onClick={() => setSelectedIndex(3)}
           className={cn(
-            "bg-card flex cursor-pointer flex-col items-center justify-center space-y-4 rounded-md border p-4 transition-colors",
+            "flex cursor-pointer flex-col items-center justify-center space-y-4 rounded-md border bg-card p-4 transition-colors",
             {
               "border-theme": selectedIndex === 3,
             },

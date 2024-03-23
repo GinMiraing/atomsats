@@ -39,7 +39,9 @@ const ErrorMap = {
   "10015": "No available UTXOs",
   "10016": "Psbt not match",
   "10017": "Invalid signature",
+  "10018": "Offer is locked by other account, please await",
   "20001": "Internal server error",
   "20002": "Market API crashed",
   "20003": "Electrum API failed",
+  "20004": "Push Tx Failed",
 };

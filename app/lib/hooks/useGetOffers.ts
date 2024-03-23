@@ -78,10 +78,10 @@ export const useGetRealmOffers = () => {
   );
 
   return {
-    data,
-    isLoading,
-    isValidating,
-    mutate,
+    realmOffers: data,
+    realmOffersLoading: isLoading,
+    realmOffersValidating: isValidating,
+    refreshRealmOffers: mutate,
   };
 };
 
@@ -129,9 +129,9 @@ export const useGetAllOffers = () => {
   );
 
   return {
-    data,
-    isLoading,
-    isValidating,
-    mutate,
+    offers: data,
+    offersLoading: isLoading,
+    offersValidating: isValidating,
+    refreshOffers: mutate,
   };
 };

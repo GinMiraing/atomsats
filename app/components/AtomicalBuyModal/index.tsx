@@ -8,11 +8,12 @@ import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { usePureUTXOs } from "@/lib/hooks/usePureUTXOs";
 import { useToast } from "@/lib/hooks/useToast";
 import { OfferSummary } from "@/lib/types/market";
-import { cn } from "@/lib/utils";
+import { cn, formatAddress } from "@/lib/utils";
 import { formatError } from "@/lib/utils/error-helpers";
 
 import { renderAddressPreview } from "../AtomicalPreview";
 import { Button } from "../Button";
+import CopyButton from "../CopyButton";
 import { Dialog, DialogContent, DialogHeader } from "../Dialog";
 import { Drawer, DrawerContent, DrawerHeader } from "../Drawer";
 import {
@@ -46,6 +47,7 @@ const AtomicalBuyModal: React.FC<{
 
   const [loading, setLoading] = useState(false);
   const [offerValid, setOfferValid] = useState(false);
+  const [pushedTx, setPushedTx] = useState("");
   const lastAccount = useRef("");
 
   const form = useForm<FormSchemaType>({
@@ -125,10 +127,22 @@ const AtomicalBuyModal: React.FC<{
         autoFinalized: false,
       });
 
-      await AxiosInstance.post("/api/offer/buy", {
+      const { data: buyResp } = await AxiosInstance.post<{
+        data: string;
+        error: boolean;
+        code: number;
+      }>("/api/offer/buy", {
         id: offer.id,
         signedPsbt,
+        account: account.address,
+        receiver: values.receiver,
       });
+
+      if (buyResp.error) {
+        throw new Error(buyResp.code.toString());
+      }
+
+      setPushedTx(buyResp.data);
     } catch (e) {
       console.log(e);
       toast({
@@ -171,7 +185,147 @@ const AtomicalBuyModal: React.FC<{
 
   if (isMobile) {
     return (
-      <Drawer
+      <>
+        <Drawer
+          open={!!offer}
+          onOpenChange={(open) => {
+            if (!open) {
+              onClose();
+            }
+          }}
+        >
+          <DrawerContent className="px-4 pb-8">
+            <DrawerHeader>
+              <div className="flex items-center space-x-2">
+                <div>Buy</div>
+                <div>
+                  <PunycodeString
+                    children={
+                      offer?.type === "dmitem" ? offer.container || "" : "realm"
+                    }
+                  />
+                </div>
+              </div>
+            </DrawerHeader>
+            <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
+              <div className="flex aspect-square w-full items-center justify-center">
+                {offer &&
+                  renderAddressPreview({
+                    subtype: offer?.type || "",
+                    atomicalId: offer?.atomicalId || "",
+                    payload: {
+                      realm: offer?.realm || "",
+                    },
+                  })}
+              </div>
+              <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">
+                {`#${offer?.atomicalNumber || "000000"}`}
+              </div>
+            </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <div className="flex flex-col space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="receiver"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Atomical Receiver</FormLabel>
+                        <FormControl>
+                          <div className="relative flex items-center">
+                            <Input
+                              className="pr-10"
+                              {...field}
+                            />
+                            <X
+                              onClick={() => form.setValue("receiver", "")}
+                              className={cn(
+                                "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
+                                {
+                                  hidden: !watchReceiver,
+                                },
+                              )}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <GasFeeSelector
+                    feeRate={watchGasFee}
+                    onFeeRateChange={(value) =>
+                      form.setValue("gasFeeRate", value)
+                    }
+                  />
+                  <div className="flex flex-col items-end justify-end space-y-2">
+                    <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
+                    <div className="text-sm">{`Service Fee: ${offer && Math.floor(offer.price * 0.01) >= 600 ? Math.floor(offer.price * 0.01) : "600"} sats`}</div>
+                    <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={
+                    loading || !offerValid || account?.address === offer?.lister
+                  }
+                  className="mt-8 flex w-full items-center justify-center"
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : !offerValid ? (
+                    "Invalid Offer"
+                  ) : (
+                    "Buy"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </DrawerContent>
+        </Drawer>
+        <Dialog
+          open={!!pushedTx}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPushedTx("");
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <div className="text-lg">Transaction Sent</div>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center space-y-6">
+              <div className="flex items-center space-x-4">
+                <a
+                  href={`https://mempool.space/tx/${pushedTx}`}
+                  target="_blank"
+                  className="text-sm transition-colors hover:text-theme-hover"
+                >
+                  {formatAddress(pushedTx, 12)}
+                </a>
+                <CopyButton text={pushedTx} />
+              </div>
+              <Button
+                className="w-32"
+                type="button"
+                onClick={() => {
+                  setPushedTx("");
+                  onClose();
+                }}
+              >
+                OK
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Dialog
         open={!!offer}
         onOpenChange={(open) => {
           if (!open) {
@@ -179,8 +333,8 @@ const AtomicalBuyModal: React.FC<{
           }
         }}
       >
-        <DrawerContent className="px-4 pb-8">
-          <DrawerHeader>
+        <DialogContent>
+          <DialogHeader>
             <div className="flex items-center space-x-2">
               <div>Buy</div>
               <div>
@@ -191,7 +345,7 @@ const AtomicalBuyModal: React.FC<{
                 />
               </div>
             </div>
-          </DrawerHeader>
+          </DialogHeader>
           <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
             <div className="flex aspect-square w-full items-center justify-center">
               {offer &&
@@ -266,107 +420,45 @@ const AtomicalBuyModal: React.FC<{
               </Button>
             </form>
           </Form>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
-  return (
-    <Dialog
-      open={!!offer}
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-        }
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <div className="flex items-center space-x-2">
-            <div>Buy</div>
-            <div>
-              <PunycodeString
-                children={
-                  offer?.type === "dmitem" ? offer.container || "" : "realm"
-                }
-              />
-            </div>
-          </div>
-        </DialogHeader>
-        <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
-          <div className="flex aspect-square w-full items-center justify-center">
-            {offer &&
-              renderAddressPreview({
-                subtype: offer?.type || "",
-                atomicalId: offer?.atomicalId || "",
-                payload: {
-                  realm: offer?.realm || "",
-                },
-              })}
-          </div>
-          <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">
-            {`#${offer?.atomicalNumber || "000000"}`}
-          </div>
-        </div>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="flex flex-col space-y-4">
-              <FormField
-                control={form.control}
-                name="receiver"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Atomical Receiver</FormLabel>
-                    <FormControl>
-                      <div className="relative flex items-center">
-                        <Input
-                          className="pr-10"
-                          {...field}
-                        />
-                        <X
-                          onClick={() => form.setValue("receiver", "")}
-                          className={cn(
-                            "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
-                            {
-                              hidden: !watchReceiver,
-                            },
-                          )}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <GasFeeSelector
-                feeRate={watchGasFee}
-                onFeeRateChange={(value) => form.setValue("gasFeeRate", value)}
-              />
-              <div className="flex flex-col items-end justify-end space-y-2">
-                <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
-                <div className="text-sm">{`Service Fee: ${offer && offer.price > 60000 ? Math.floor(offer.price * 0.01) : "0"} sats`}</div>
-                <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
-              </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!pushedTx}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPushedTx("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <div className="text-lg">Transaction Sent</div>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center space-y-6">
+            <div className="flex items-center space-x-4">
+              <a
+                href={`https://mempool.space/tx/${pushedTx}`}
+                target="_blank"
+                className="text-sm transition-colors hover:text-theme-hover"
+              >
+                {formatAddress(pushedTx, 12)}
+              </a>
+              <CopyButton text={pushedTx} />
             </div>
             <Button
-              type="submit"
-              disabled={
-                loading || !offerValid || account?.address === offer?.lister
-              }
-              className="mt-8 flex w-full items-center justify-center"
+              className="w-32"
+              type="button"
+              onClick={() => {
+                setPushedTx("");
+                onClose();
+              }}
             >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : !offerValid ? (
-                "Invalid Offer"
-              ) : (
-                "Buy"
-              )}
+              OK
             </Button>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

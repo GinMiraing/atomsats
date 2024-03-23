@@ -1,9 +1,7 @@
-import { LoaderFunction, json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
 import { isAxiosError } from "axios";
 import { networks } from "bitcoinjs-lib";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import useSWR from "swr";
 
 import { getElectrumClient } from "@/lib/apis/atomical";
@@ -13,36 +11,31 @@ import {
   isREALM,
   isSubrealm,
 } from "@/lib/apis/atomical/type";
-import { useExplorerStatus } from "@/lib/hooks/useExplorerStatus";
 import { useSetSearch } from "@/lib/hooks/useSetSearch";
 import { useToast } from "@/lib/hooks/useToast";
 import { cn } from "@/lib/utils";
 
 import { renderIndexerPreview } from "@/components/AtomicalPreview";
 import { Button } from "@/components/Button";
+import EmptyTip from "@/components/EmptyTip";
+import GridList from "@/components/GridList";
+
+import { useExplorerStatus } from "../explorer/hooks/useExplorerStatus";
 
 const skeletons = new Array(20).fill(0);
 const buttons = new Array(5).fill(0);
 
-export const loader: LoaderFunction = async ({ request }) => {
-  const url = new URL(request.url);
-
-  const page = url.searchParams.get("page") || "1";
-
-  return json({
-    page: parseInt(page) || 1,
-  });
-};
-
 export default function ExplorerLive() {
-  const { page } = useLoaderData<{
-    page: number;
-  }>();
   const { toast } = useToast();
-  const { updateSearchParams } = useSetSearch();
+  const { searchParams, updateSearchParams } = useSetSearch();
   const { setIsValidating } = useExplorerStatus();
 
   const electrumClient = getElectrumClient(networks.bitcoin);
+
+  const page = useMemo(
+    () => parseInt(searchParams.get("page") || "1") || 1,
+    [searchParams],
+  );
 
   const { data, isLoading, isValidating, mutate } = useSWR(
     "explorer-live",
@@ -116,12 +109,12 @@ export default function ExplorerLive() {
     setIsValidating(isValidating);
   }, [isValidating]);
 
-  if (isLoading || isValidating) {
+  if (!data || isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-4 md:gap-5 xl:grid-cols-5 xl:gap-8">
+      <div className="space-y-6">
+        <GridList>
           <LoadingSkeleton />
-        </div>
+        </GridList>
         <div className="flex items-center justify-center space-x-2">
           {buttons.map((_, i) => (
             <Button
@@ -140,42 +133,10 @@ export default function ExplorerLive() {
     );
   }
 
-  if (!data || data.length === 0) {
-    return (
-      <div className="space-y-4">
-        <div className="flex h-screen w-full items-center justify-center text-xl">
-          Something went wrong, please try again later.
-        </div>
-        <div className="flex items-center justify-center space-x-2">
-          {buttons.map((_, i) => (
-            <Button
-              key={i}
-              onClick={() =>
-                updateSearchParams({
-                  page: i + 1,
-                })
-              }
-              className={cn(
-                "hover:bg-theme hover:text-white hover:opacity-100",
-                {
-                  "bg-theme text-white": page === i + 1,
-                  "bg-secondary text-primary": page !== i + 1,
-                },
-              )}
-              disabled={isLoading || isValidating || page === i + 1}
-            >
-              {i + 1}
-            </Button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-4 md:gap-5 xl:grid-cols-5 xl:gap-8">
-        {data &&
+    <div className="space-y-6">
+      <GridList>
+        {data ? (
           data.map((atomical) => (
             <div
               key={atomical.atomicalId}
@@ -210,8 +171,11 @@ export default function ExplorerLive() {
                 </div>
               </div>
             </div>
-          ))}
-      </div>
+          ))
+        ) : (
+          <EmptyTip />
+        )}
+      </GridList>
       <div className="flex items-center justify-center space-x-2">
         {buttons.map((_, i) => (
           <Button

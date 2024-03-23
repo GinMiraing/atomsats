@@ -2,7 +2,6 @@ import { create } from "zustand";
 
 interface ExplorerStatus {
   isValidating: boolean;
-
   setIsValidating: (isValidating: boolean) => void;
 }
 

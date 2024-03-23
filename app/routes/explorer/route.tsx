@@ -1,10 +1,9 @@
 import { Outlet, useLocation, useNavigate } from "@remix-run/react";
-import dayjs from "dayjs";
 import { Loader2 } from "lucide-react";
 
-import { useExplorerStatus } from "@/lib/hooks/useExplorerStatus";
-
 import { Tabs, TabsList, TabsTrigger } from "@/components/Tabs";
+
+import { useExplorerStatus } from "./hooks/useExplorerStatus";
 
 const tabs = [
   {

@@ -15,7 +15,7 @@ export const useGasFee = () => {
   );
 
   return {
-    data,
-    mutate,
+    gasFee: data,
+    refreshGasFee: mutate,
   };
 };
