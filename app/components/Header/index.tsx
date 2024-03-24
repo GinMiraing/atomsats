@@ -220,7 +220,16 @@ const Header: React.FC = () => {
               <div
                 key={item.name}
                 onClick={() => nagigate(item.link)}
-                className="flex w-full cursor-pointer items-center space-x-3 rounded-lg bg-secondary p-6 text-primary transition-colors hover:bg-theme hover:text-white"
+                className={cn(
+                  "flex w-full  items-center space-x-3 rounded-lg bg-secondary p-6 transition-colors hover:bg-theme hover:text-white",
+                  {
+                    "pointer-events-none cursor-not-allowed text-secondary":
+                      item.disable,
+                  },
+                  {
+                    "cursor-pointer text-primary": !item.disable,
+                  },
+                )}
               >
                 {item.icon}
                 <span className="text-xl">{item.name}</span>
