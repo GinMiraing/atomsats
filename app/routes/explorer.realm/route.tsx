@@ -106,7 +106,7 @@ export default function ExplorerRealm() {
               key={atomical.atomicalId}
               className="overflow-hidden rounded-md border"
             >
-              <div className="relative flex aspect-square w-full items-center justify-center bg-black text-white">
+              <div className="relative flex aspect-square w-full items-center justify-center bg-primary text-white">
                 {renderIndexerPreview({
                   subtype: "realm",
                   atomicalId: atomical.atomicalId,
