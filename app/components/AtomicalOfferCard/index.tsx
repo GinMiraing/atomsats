@@ -19,6 +19,7 @@ const AtomicalOfferCard: React.FC<{
           atomicalId: offer.atomicalId,
           payload: {
             realm: offer.realm,
+            parentContainer: offer.container,
           },
         })}
         <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">

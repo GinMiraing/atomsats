@@ -52,7 +52,10 @@ export default function MarketContainerHistory() {
       {orders.orders.length === 0 ? (
         <EmptyTip border />
       ) : (
-        <HistoryTable orders={orders.orders} />
+        <HistoryTable
+          orders={orders.orders}
+          container={container}
+        />
       )}
       <Pagination
         page={page}

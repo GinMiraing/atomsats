@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { getElectrumClient } from "@/lib/apis/atomical";
 import {
   isCONTAINER,
+  isDMINT,
   isFT,
   isREALM,
   isSubrealm,
@@ -37,6 +38,7 @@ export default function AtomicalId() {
     subrealm?: string;
     ticker?: string;
     container?: string;
+    parentContainerId?: string;
     isArcs: boolean;
     txs: string[];
   } | null>(null);
@@ -63,6 +65,7 @@ export default function AtomicalId() {
         subrealm?: string;
         ticker?: string;
         container?: string;
+        parentContainerId?: string;
         isArcs: boolean;
       } = {
         isArcs: false,
@@ -89,6 +92,8 @@ export default function AtomicalId() {
         atomicalDataTemp.realm = result.$request_realm;
       } else if (isSubrealm(result)) {
         atomicalDataTemp.subrealm = result.$request_full_realm_name;
+      } else if (isDMINT(result)) {
+        atomicalDataTemp.parentContainerId = result.$parent_container;
       }
 
       if ("arcs.txt" in result.mint_data.fields) {
@@ -144,6 +149,7 @@ export default function AtomicalId() {
             ticker: atomical.ticker,
             container: atomical.container,
             arcs: atomical.isArcs,
+            parentContainer: atomical.parentContainerId,
           },
         })}
         <div className="absolute left-4 top-4 flex rounded-md bg-theme px-2 py-1">

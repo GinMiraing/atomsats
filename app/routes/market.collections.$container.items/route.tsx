@@ -85,7 +85,9 @@ export default function MarketContainerItems() {
                 {renderIndexerPreview({
                   subtype: "dmitem",
                   atomicalId: dmitem.atomicalId,
-                  payload: {},
+                  payload: {
+                    parentContainer: container,
+                  },
                 })}
                 <div className="absolute left-3 top-3 flex rounded-md bg-theme px-1 py-0.5 text-xs">
                   {dmitem.dmitem?.toUpperCase() || "DMITEM"}

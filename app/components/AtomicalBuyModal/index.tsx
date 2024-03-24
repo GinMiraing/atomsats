@@ -234,6 +234,7 @@ const AtomicalBuyModal: React.FC<{
                     atomicalId: offer?.atomicalId || "",
                     payload: {
                       realm: offer?.realm || "",
+                      parentContainer: offer?.container,
                     },
                   })}
               </div>

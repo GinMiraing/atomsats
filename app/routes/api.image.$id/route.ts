@@ -24,7 +24,11 @@ export const loader: LoaderFunction = async ({ params }) => {
       return new Response(Buffer.from(resp.content, "hex"), {
         headers: {
           "Content-Type":
-            resp.contentType === "svg" ? "image/svg+xml" : resp.contentType,
+            resp.contentType === "svg"
+              ? "image/svg+xml"
+              : ["mp4", "webm", "ogg"].includes(resp.contentType)
+                ? `video/${resp.contentType}`
+                : resp.contentType,
         },
       });
     }

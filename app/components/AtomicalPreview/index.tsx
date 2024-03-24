@@ -12,6 +12,7 @@ export const renderAddressPreview = (atomical: {
     amount?: number;
     arcs?: boolean;
     container?: string;
+    parentContainer?: string;
   };
 }) => {
   if (
@@ -59,6 +60,21 @@ export const renderAddressPreview = (atomical: {
         </div>
       </div>
     );
+  } else if (
+    atomical.payload.parentContainer === "googoogaga" ||
+    atomical.payload.parentContainer ===
+      "2b3c054cbe6852fa4f7160e8aea0f158d2e34b17644db1bd0e8f034acaabe833i0"
+  ) {
+    return (
+      <video
+        className="h-full w-full"
+        autoPlay
+        muted
+        loop
+      >
+        <source src={`/api/image/${atomical.atomicalId}`} />
+      </video>
+    );
   } else {
     return (
       <img
@@ -79,6 +95,7 @@ export const renderIndexerPreview = (atomical: {
     ticker?: string;
     container?: string;
     arcs?: boolean;
+    parentContainer?: string;
   };
 }) => {
   if (
@@ -120,6 +137,21 @@ export const renderIndexerPreview = (atomical: {
         <div className="text-2xl">Arcs</div>
         <div className="text-lg">{formatNumber(1000)}</div>
       </div>
+    );
+  } else if (
+    atomical.payload.parentContainer === "googoogaga" ||
+    atomical.payload.parentContainer ===
+      "2b3c054cbe6852fa4f7160e8aea0f158d2e34b17644db1bd0e8f034acaabe833i0"
+  ) {
+    return (
+      <video
+        className="h-full w-full"
+        autoPlay
+        muted
+        loop
+      >
+        <source src={`/api/image/${atomical.atomicalId}`} />
+      </video>
     );
   } else {
     return (

@@ -17,7 +17,8 @@ import {
 
 const HistoryTable: React.FC<{
   orders: OrderSummary[];
-}> = ({ orders }) => {
+  container: string;
+}> = ({ orders, container }) => {
   const navigate = useNavigate();
 
   return (
@@ -45,7 +46,9 @@ const HistoryTable: React.FC<{
                   {renderIndexerPreview({
                     subtype: "dmitem",
                     atomicalId: order.atomicalId,
-                    payload: {},
+                    payload: {
+                      parentContainer: container,
+                    },
                   })}
                 </div>
               </TableCell>

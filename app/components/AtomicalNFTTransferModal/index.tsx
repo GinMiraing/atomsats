@@ -231,6 +231,7 @@ const AtomicalNFTTransferModal: React.FC<{
                     atomicalId: atomical?.atomicalId || "",
                     payload: {
                       realm: atomical?.requestRealm || "",
+                      parentContainer: atomical?.parentContainer,
                     },
                   })}
               </div>
@@ -354,6 +355,7 @@ const AtomicalNFTTransferModal: React.FC<{
                   atomicalId: atomical?.atomicalId || "",
                   payload: {
                     realm: atomical?.requestRealm || "",
+                    parentContainer: atomical?.parentContainer,
                   },
                 })}
             </div>

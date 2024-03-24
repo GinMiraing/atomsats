@@ -10,6 +10,7 @@ export const action: ActionFunction = async () => {
         atomical_id: true,
         atomical_number: true,
         mint_time: true,
+        container: true,
       },
       where: {
         status: 1,
@@ -27,6 +28,7 @@ export const action: ActionFunction = async () => {
         atomicalId: dmitem.atomical_id,
         atomicalNumber: dmitem.atomical_number,
         mintTime: dmitem.mint_time,
+        container: dmitem.container,
       })),
       error: false,
       code: 0,

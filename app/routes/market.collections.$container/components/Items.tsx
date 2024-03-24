@@ -176,7 +176,9 @@ const Items: React.FC<{
               {renderIndexerPreview({
                 subtype: "dmitem",
                 atomicalId: item.atomicalId,
-                payload: {},
+                payload: {
+                  parentContainer: container,
+                },
               })}
               <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">
                 <PunycodeString children={item.dmitem} />

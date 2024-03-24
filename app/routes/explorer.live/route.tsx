@@ -7,6 +7,7 @@ import useSWR from "swr";
 import { getElectrumClient } from "@/lib/apis/atomical";
 import {
   isCONTAINER,
+  isDMINT,
   isFT,
   isREALM,
   isSubrealm,
@@ -60,6 +61,7 @@ export default function ExplorerLive() {
             ticker?: string;
             container?: string;
             subrealm?: string;
+            parentContainerId?: string;
           } = {
             isArcs: false,
             atomicalId: atomical.atomical_id,
@@ -77,6 +79,8 @@ export default function ExplorerLive() {
             atomicalDataTemp.realm = atomical.$request_realm;
           } else if (isSubrealm(atomical)) {
             atomicalDataTemp.subrealm = atomical.$request_subrealm;
+          } else if (isDMINT(atomical)) {
+            atomicalDataTemp.parentContainerId = atomical.$parent_container;
           }
 
           if ("arcs.txt" in atomical.mint_data.fields) {
@@ -151,6 +155,7 @@ export default function ExplorerLive() {
                     ticker: atomical.ticker,
                     container: atomical.container,
                     arcs: atomical.isArcs,
+                    parentContainer: atomical.parentContainerId,
                   },
                 })}
                 <div className="absolute left-3 top-3 flex rounded-md bg-theme px-1 py-0.5 text-xs">

@@ -37,6 +37,7 @@ export default function ExplorerRealm() {
             atomicalId: string;
             atomicalNumber: number;
             mintTime: number;
+            container: string;
           }[];
           error: boolean;
           code: number;
@@ -51,6 +52,7 @@ export default function ExplorerRealm() {
           atomicalNumber: atomical.atomicalNumber,
           type: "NFT",
           subtype: "dmitem",
+          container: atomical.container,
           mintTime: atomical.mintTime,
         }));
       } catch (e) {
@@ -108,7 +110,9 @@ export default function ExplorerRealm() {
                 {renderIndexerPreview({
                   subtype: "dmitem",
                   atomicalId: atomical.atomicalId,
-                  payload: {},
+                  payload: {
+                    parentContainer: atomical.container,
+                  },
                 })}
                 <div className="absolute left-3 top-3 flex rounded-md bg-theme px-1 py-0.5 text-xs">
                   DMITEM

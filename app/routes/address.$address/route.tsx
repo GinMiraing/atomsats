@@ -355,6 +355,7 @@ export default function Address() {
                         amount: atomical.utxo.value,
                         arcs: atomical.atomical.isArcs,
                         container: atomical.atomical.requestContainer,
+                        parentContainer: atomical.atomical.parentContainer,
                       },
                     })}
                     <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">
