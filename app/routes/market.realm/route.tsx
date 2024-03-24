@@ -50,6 +50,7 @@ export default function MarketRealm() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: filters,
+    mode: "onSubmit",
   });
 
   useEffect(() => {

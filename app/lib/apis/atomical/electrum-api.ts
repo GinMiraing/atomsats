@@ -350,7 +350,22 @@ export class ElectrumApi implements ElectrumApiInterface {
     return this.atomicalsByScripthash(scripthash);
   }
 
-  public atomicalsAtLocation(location: string): Promise<any> {
+  public atomicalsAtLocation(location: string): Promise<{
+    atomicals: {
+      atomical_id: string;
+      atomical_number: number;
+      atomical_ref: string;
+      type: "NFT" | "FT";
+    }[];
+    location_info: {
+      index: number;
+      location: string;
+      script: string;
+      scripthash: string;
+      txid: string;
+      value: number;
+    };
+  }> {
     return this.call("blockchain.atomicals.at_location", [location]);
   }
 

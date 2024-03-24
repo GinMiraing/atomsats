@@ -8,6 +8,7 @@ import { formatAddress, formatNumber, satsToBTC } from "@/lib/utils";
 import { detectAddressType } from "@/lib/utils/address-helpers";
 import { formatError } from "@/lib/utils/error-helpers";
 
+import AtomicalNFTTransferModal from "@/components/AtomicalNFTTransferModal";
 import { renderAddressPreview } from "@/components/AtomicalPreview";
 import { Button } from "@/components/Button";
 import CopyButton from "@/components/CopyButton";
@@ -76,6 +77,14 @@ export default function Address() {
 
   const [atomicalType, setAtomicalType] = useState("all");
   const [listData, setListData] = useState<{
+    atomical?: AccountAtomical;
+    utxo?: {
+      txid: string;
+      value: number;
+      vout: number;
+    };
+  }>({});
+  const [transferNFTData, setTransferNFTData] = useState<{
     atomical?: AccountAtomical;
     utxo?: {
       txid: string;
@@ -423,8 +432,12 @@ export default function Address() {
                         ) : (
                           <>
                             <Button
-                              disabled
                               className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme"
+                              onClick={() => {
+                                if (atomical.atomical.type === "NFT") {
+                                  setTransferNFTData({ ...atomical });
+                                }
+                              }}
                             >
                               Transfer
                             </Button>
@@ -457,6 +470,15 @@ export default function Address() {
         utxo={listData.utxo}
         onClose={() => setListData({})}
         onSuccess={() => refreshPortfolio()}
+      />
+      <AtomicalNFTTransferModal
+        atomical={transferNFTData.atomical}
+        utxo={transferNFTData.utxo}
+        onClose={() => setTransferNFTData({})}
+        onSuccess={() => {
+          setTransferNFTData({});
+          refreshPortfolio();
+        }}
       />
     </>
   );

@@ -36,11 +36,11 @@ const MobileWalletModal: React.FC = () => {
       open={modalOpen}
       onOpenChange={setModalOpen}
     >
-      <DrawerContent>
+      <DrawerContent className="space-y-4 px-4 pb-8">
         <DrawerHeader>
           <DrawerTitle>Connect Wallet</DrawerTitle>
         </DrawerHeader>
-        <div className="flex flex-col space-y-2 px-4 pb-4">
+        <div className="flex flex-col space-y-2">
           <div
             onClick={() => handleConnect("unisat")}
             className="group flex w-full cursor-pointer items-center space-x-4 rounded-lg bg-secondary p-4 transition-colors hover:bg-theme"

@@ -54,11 +54,11 @@ const ListForm: React.FC<{
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
-    mode: "onSubmit",
     defaultValues: {
       price: "0",
       receiver: "",
     },
+    mode: "onSubmit",
   });
 
   const watchPrice = form.watch("price");
@@ -127,7 +127,7 @@ const ListForm: React.FC<{
           if (!open) onClose();
         }}
       >
-        <DrawerContent className="px-4 pb-8">
+        <DrawerContent className="space-y-4 px-4 pb-8">
           <DrawerHeader>
             {atomical?.listed ? "Edit" : "List"} Your Atomical
           </DrawerHeader>
