@@ -96,6 +96,11 @@ const ListForm: React.FC<{
   };
 
   useEffect(() => {
+    if (!account) {
+      onClose();
+      return;
+    }
+
     if (account && account.address === lastAccount.current) return;
 
     if (account) {

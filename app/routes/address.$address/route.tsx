@@ -432,6 +432,7 @@ export default function Address() {
                         ) : (
                           <>
                             <Button
+                              disabled={atomical.atomical.type === "FT"}
                               className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme"
                               onClick={() => {
                                 if (atomical.atomical.type === "NFT") {

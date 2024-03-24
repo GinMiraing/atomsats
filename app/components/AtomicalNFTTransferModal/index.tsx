@@ -205,6 +205,13 @@ const AtomicalNFTTransferModal: React.FC<{
     }
   }, [atomical, utxo]);
 
+  useEffect(() => {
+    if (!account) {
+      onClose();
+      return;
+    }
+  }, [account]);
+
   if (isMobile) {
     return (
       <>
