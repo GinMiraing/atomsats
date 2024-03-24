@@ -8,17 +8,17 @@ import { useExplorerStatus } from "./hooks/useExplorerStatus";
 const tabs = [
   {
     name: "live",
-    label: "LIVE",
+    label: "Live",
     path: "/explorer/live",
   },
   {
     name: "realm",
-    label: "REALM",
+    label: "Realm",
     path: "/explorer/realm",
   },
   {
     name: "dmitem",
-    label: "DMITEN",
+    label: "Dmitem",
     path: "/explorer/dmitem",
   },
 ];

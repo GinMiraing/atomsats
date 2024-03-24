@@ -1,6 +1,6 @@
 import { LoaderFunction, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useBTCPrice } from "@/lib/hooks/useBTCPrice";
 import { useToast } from "@/lib/hooks/useToast";
@@ -100,6 +100,8 @@ export default function Address() {
         ].includes(atomical.atomical.subtype);
       } else if (atomicalType === "dmitem") {
         return ["dmitem", "request_dmitem"].includes(atomical.atomical.subtype);
+      } else if (atomicalType === "listings") {
+        return atomical.atomical.listed;
       } else if (atomicalType === "all") {
         return true;
       }
@@ -152,6 +154,14 @@ export default function Address() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!account || account.address !== address) {
+      if (atomicalType === "listings") {
+        setAtomicalType("all");
+      }
+    }
+  }, [account]);
 
   if (!portfolio) {
     return (
@@ -287,6 +297,14 @@ export default function Address() {
                 {tab.label}
               </TabsTrigger>
             ))}
+            {account && account.address === address && (
+              <TabsTrigger
+                className="h-10 bg-transparent text-primary hover:text-theme-hover data-[state=active]:border-b-2 data-[state=active]:border-b-theme data-[state=active]:bg-transparent data-[state=active]:text-theme"
+                value="listings"
+              >
+                Listings
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
         <div className="w-full space-y-4">
