@@ -28,7 +28,7 @@ export const useSetSearch = () => {
     });
 
     setSearchParams(newSearchParams, {
-      replace: true,
+      replace: newSearchParams.has("page") ? false : true,
       preventScrollReset: options?.scroll === false ? true : false,
     });
   };
