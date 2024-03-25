@@ -3,11 +3,13 @@ export type OfferSummary = {
   lister: string;
   atomicalId: string;
   atomicalNumber: number;
-  type: "realm" | "dmitem";
+  type: string;
   price: number;
   realm: string;
   dmitem: string;
   container: string;
+  description: string;
+  favorAddress: string[];
 };
 
 export type OrderSummary = {

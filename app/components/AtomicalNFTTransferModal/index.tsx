@@ -189,7 +189,7 @@ const AtomicalNFTTransferModal: React.FC<{
       toast({
         duration: 2000,
         variant: "destructive",
-        title: "List failed",
+        title: "Transfer failed",
         description: formatError(e),
       });
     } finally {
@@ -223,7 +223,7 @@ const AtomicalNFTTransferModal: React.FC<{
         >
           <DrawerContent className="space-y-4 px-4 pb-8">
             <DrawerHeader>Transfer Your Atomical</DrawerHeader>
-            <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
+            <div className="relative mx-auto flex w-48 items-center justify-center overflow-hidden rounded-md bg-card lg:w-64">
               <div className="flex aspect-square w-full items-center justify-center">
                 {atomical &&
                   renderAddressPreview({
@@ -241,51 +241,53 @@ const AtomicalNFTTransferModal: React.FC<{
             </div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="flex flex-col space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="receiver"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Atomical Receiver</FormLabel>
-                        <FormControl>
-                          <div className="relative flex items-center">
-                            <Input
-                              className="pr-10"
-                              {...field}
-                            />
-                            <X
-                              onClick={() => form.setValue("receiver", "")}
-                              className={cn(
-                                "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
-                                {
-                                  hidden: !watchReceiver,
-                                },
-                              )}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormItem>
-                    <FormLabel>Gas Fee</FormLabel>
-                    <GasFeeSelector
-                      feeRate={watchGasFee}
-                      onFeeRateChange={(value) =>
-                        form.setValue("gasFeeRate", value)
-                      }
+                <div className="box-content max-h-[30vh] w-full overflow-y-scroll py-2 pr-1">
+                  <div className="flex w-full flex-col space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="receiver"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Atomical Receiver</FormLabel>
+                          <FormControl>
+                            <div className="relative flex items-center">
+                              <Input
+                                className="pr-10"
+                                {...field}
+                              />
+                              <X
+                                onClick={() => form.setValue("receiver", "")}
+                                className={cn(
+                                  "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
+                                  {
+                                    hidden: !watchReceiver,
+                                  },
+                                )}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormItem>
-                  <div className="flex flex-col items-end justify-end space-y-2">
-                    <div className="text-green-400">{`Sats In Atomical: ${utxo?.value || 1000} sats`}</div>
+                    <FormItem>
+                      <FormLabel>Gas Fee</FormLabel>
+                      <GasFeeSelector
+                        feeRate={watchGasFee}
+                        onFeeRateChange={(value) =>
+                          form.setValue("gasFeeRate", value)
+                        }
+                      />
+                    </FormItem>
                   </div>
+                </div>
+                <div className="mt-4 flex flex-col items-end justify-end space-y-2">
+                  <div className="text-green-400">{`Sats In Atomical: ${utxo?.value || 1000} sats`}</div>
                 </div>
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="mt-8 flex w-full items-center justify-center"
+                  className="mt-4 flex w-full items-center justify-center"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -347,7 +349,7 @@ const AtomicalNFTTransferModal: React.FC<{
       >
         <DialogContent>
           <DialogHeader>Transfer Your Atomical</DialogHeader>
-          <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
+          <div className="relative mx-auto flex w-48 items-center justify-center overflow-hidden rounded-md bg-card lg:w-64">
             <div className="flex aspect-square w-full items-center justify-center">
               {atomical &&
                 renderAddressPreview({
@@ -365,51 +367,53 @@ const AtomicalNFTTransferModal: React.FC<{
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="flex flex-col space-y-4">
-                <FormField
-                  control={form.control}
-                  name="receiver"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Atomical Receiver</FormLabel>
-                      <FormControl>
-                        <div className="relative flex items-center">
-                          <Input
-                            className="pr-10"
-                            {...field}
-                          />
-                          <X
-                            onClick={() => form.setValue("receiver", "")}
-                            className={cn(
-                              "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
-                              {
-                                hidden: !watchReceiver,
-                              },
-                            )}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormItem>
-                  <FormLabel>Gas Fee</FormLabel>
-                  <GasFeeSelector
-                    feeRate={watchGasFee}
-                    onFeeRateChange={(value) =>
-                      form.setValue("gasFeeRate", value)
-                    }
+              <div className="box-content max-h-[30vh] w-full overflow-y-scroll py-2 pr-1">
+                <div className="flex w-full flex-col space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="receiver"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Atomical Receiver</FormLabel>
+                        <FormControl>
+                          <div className="relative flex items-center">
+                            <Input
+                              className="pr-10"
+                              {...field}
+                            />
+                            <X
+                              onClick={() => form.setValue("receiver", "")}
+                              className={cn(
+                                "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
+                                {
+                                  hidden: !watchReceiver,
+                                },
+                              )}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormItem>
-                <div className="flex flex-col items-end justify-end space-y-2">
-                  <div className="text-green-400">{`Sats In Atomical: ${utxo?.value || 1000} sats`}</div>
+                  <FormItem>
+                    <FormLabel>Gas Fee</FormLabel>
+                    <GasFeeSelector
+                      feeRate={watchGasFee}
+                      onFeeRateChange={(value) =>
+                        form.setValue("gasFeeRate", value)
+                      }
+                    />
+                  </FormItem>
                 </div>
+              </div>
+              <div className="mt-4 flex flex-col items-end justify-end space-y-2">
+                <div className="text-green-400">{`Sats In Atomical: ${utxo?.value || 1000} sats`}</div>
               </div>
               <Button
                 type="submit"
                 disabled={loading}
-                className="mt-8 flex w-full items-center justify-center"
+                className="mt-4 flex w-full items-center justify-center"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

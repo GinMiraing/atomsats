@@ -7,13 +7,13 @@ import AxiosInstance from "@/lib/axios";
 import { useToast } from "@/lib/hooks/useToast";
 import { formatError } from "@/lib/utils/error-helpers";
 
-import { AccountAtomical } from "../types";
+import { AccountAtomical, AccountOffer } from "../types";
 
 export const usePortfolio = (address: string) => {
   const electrumClient = getElectrumClient(networks.bitcoin);
   const { toast } = useToast();
 
-  const { data, mutate } = useSWR(
+  const { data, isValidating, mutate } = useSWR(
     `portfolio-${address}`,
     async () => {
       try {
@@ -21,11 +21,7 @@ export const usePortfolio = (address: string) => {
           getAddressBalance(address, networks.bitcoin),
           getUTXOsInMempool(address, networks.bitcoin),
           AxiosInstance.post<{
-            data: {
-              atomicalId: string;
-              price: number;
-              receiver: string;
-            }[];
+            data: AccountOffer[];
             error: boolean;
             code: number;
           }>(`/api/offer/${address}`),
@@ -131,6 +127,8 @@ export const usePortfolio = (address: string) => {
               atomical.listed = {
                 price: matchedOffer.price,
                 receiver: matchedOffer.receiver,
+                description: matchedOffer.description || "",
+                favorAddress: matchedOffer.favorAddress || [],
               };
             }
 
@@ -163,6 +161,7 @@ export const usePortfolio = (address: string) => {
             arc20Balance,
           },
           atomicals: atomicalWithUTXO,
+          offers: offers.data,
           nftCount,
         };
       } catch (e) {
@@ -181,6 +180,7 @@ export const usePortfolio = (address: string) => {
 
   return {
     portfolio: data,
+    portfolioValidating: isValidating,
     refreshPortfolio: mutate,
   };
 };

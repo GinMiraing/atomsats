@@ -42,7 +42,7 @@ const GasFeeSelector: React.FC<{
             )}
           >
             <div>{gas.description}</div>
-            <div>{gas.value}</div>
+            <div className="text-xl">{gas.value}</div>
           </div>
         ))}
         <div

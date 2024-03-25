@@ -3,6 +3,8 @@ import { ActionFunction, json } from "@remix-run/node";
 import { z } from "zod";
 
 import DatabaseInstance from "@/lib/server/prisma.server";
+import RedisInstance from "@/lib/server/redis.server";
+import { OfferSummary } from "@/lib/types/market";
 import { errorResponse } from "@/lib/utils/error-helpers";
 
 const Schema = z.object({
@@ -58,6 +60,7 @@ export const action: ActionFunction = async ({ request }) => {
           realm?: string;
           dmitem?: string;
           container?: string;
+          description?: string;
         }[]
       >`SELECT
           id,
@@ -65,6 +68,7 @@ export const action: ActionFunction = async ({ request }) => {
           atomical_id,
           atomical_number,
           type,
+          description,
           ${
             data.market === "realm"
               ? Prisma.sql`realm,`
@@ -184,21 +188,39 @@ export const action: ActionFunction = async ({ request }) => {
       `,
     ]);
 
+    const response: {
+      offers: OfferSummary[];
+      count: number;
+    } = {
+      offers: offers.map((offer) => ({
+        id: offer.id,
+        lister: offer.list_account,
+        atomicalId: offer.atomical_id,
+        atomicalNumber: parseInt(offer.atomical_number.toString()),
+        type: offer.type === 1 ? "realm" : "dmitem",
+        price: parseInt(offer.price.toString()),
+        realm: offer.realm || "",
+        dmitem: offer.dmitem || "",
+        container: offer.container || data.container || "",
+        description: offer.description || "",
+        favorAddress: [],
+      })),
+      count: count.length > 0 ? parseInt(count[0].count.toString()) : 0,
+    };
+
+    const favorAddressList = await Promise.all(
+      response.offers.map((offer) =>
+        RedisInstance.smembers(`offer:favors:${offer.id}`),
+      ),
+    );
+
+    for (let i = 0; i < response.offers.length; i++) {
+      response.offers[i].favorAddress =
+        favorAddressList[i].length > 0 ? favorAddressList[i] : [];
+    }
+
     return {
-      data: {
-        offers: offers.map((offer) => ({
-          id: offer.id,
-          lister: offer.list_account,
-          atomicalId: offer.atomical_id,
-          atomicalNumber: parseInt(offer.atomical_number.toString()),
-          type: offer.type === 1 ? "realm" : "dmitem",
-          price: parseInt(offer.price.toString()),
-          realm: offer.realm || "",
-          dmitem: offer.dmitem || "",
-          container: offer.container || data.container || "",
-        })),
-        count: count.length > 0 ? parseInt(count[0].count.toString()) : 0,
-      },
+      data: response,
       error: false,
       code: 0,
     };

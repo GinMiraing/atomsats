@@ -16,6 +16,7 @@ const Schema = z.object({
   atomicalNumber: z.number().int().min(0),
   type: z.enum(["realm", "dmitem"]),
   price: z.number(),
+  description: z.string().optional(),
   listAccount: z.string(),
   receiver: z.string(),
   unsignedPsbt: z.string(),
@@ -72,6 +73,7 @@ export const action: ActionFunction = async ({ request }) => {
           atomical_number: data.atomicalNumber,
           type: data.type === "realm" ? 1 : 2,
           price: data.price,
+          description: data.description,
           status: 1,
           list_account: data.listAccount,
           funding_receiver: data.receiver,
@@ -88,6 +90,7 @@ export const action: ActionFunction = async ({ request }) => {
         },
         update: {
           price: data.price,
+          description: data.description,
           status: 1,
           funding_receiver: data.receiver,
           unsigned_psbt: data.unsignedPsbt,

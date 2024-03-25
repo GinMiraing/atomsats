@@ -74,6 +74,7 @@ export default function MarketRealmListing() {
               key={offer.id}
             >
               <Button
+                className="w-full"
                 disabled={account && account.address === offer.lister}
                 onClick={() => {
                   if (!account) {

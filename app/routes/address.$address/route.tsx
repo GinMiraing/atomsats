@@ -1,14 +1,20 @@
 import { LoaderFunction, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { useEffect, useMemo, useState } from "react";
+import { Heart, Share2 } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { useBTCPrice } from "@/lib/hooks/useBTCPrice";
+import { useClipboard } from "@/lib/hooks/useClipboard";
+import { useSetSearch } from "@/lib/hooks/useSetSearch";
 import { useToast } from "@/lib/hooks/useToast";
-import { formatAddress, formatNumber, satsToBTC } from "@/lib/utils";
+import { OfferSummary } from "@/lib/types/market";
+import { cn, formatAddress, formatNumber, satsToBTC } from "@/lib/utils";
 import { detectAddressType } from "@/lib/utils/address-helpers";
 import { formatError } from "@/lib/utils/error-helpers";
 
+import AtomicalBuyModal from "@/components/AtomicalBuyModal";
 import AtomicalNFTTransferModal from "@/components/AtomicalNFTTransferModal";
+import { AtomicalOfferCard } from "@/components/AtomicalOfferCard";
 import { renderAddressPreview } from "@/components/AtomicalPreview";
 import { Button } from "@/components/Button";
 import CopyButton from "@/components/CopyButton";
@@ -39,6 +45,10 @@ const TabItems = [
   {
     key: "dmitem",
     label: "Dmitem",
+  },
+  {
+    key: "listings",
+    label: "Listings",
   },
 ];
 
@@ -71,11 +81,13 @@ export default function Address() {
 
   const { toast } = useToast();
   const { BTCPrice } = useBTCPrice();
-  const { account } = useWallet();
-  const { portfolio, refreshPortfolio } = usePortfolio(address);
+  const { account, setModalOpen } = useWallet();
+  const { portfolio, portfolioValidating, refreshPortfolio } =
+    usePortfolio(address);
   const { unlistAtomical } = useListAtomical();
+  const { searchParams, updateSearchParams } = useSetSearch();
 
-  const [atomicalType, setAtomicalType] = useState("all");
+  const tabType = searchParams.get("type") || "all";
   const [listData, setListData] = useState<{
     atomical?: AccountAtomical;
     utxo?: {
@@ -84,6 +96,7 @@ export default function Address() {
       vout: number;
     };
   }>({});
+  const [selectedOffer, setSelectedOffer] = useState<OfferSummary>();
   const [transferNFTData, setTransferNFTData] = useState<{
     atomical?: AccountAtomical;
     utxo?: {
@@ -98,27 +111,27 @@ export default function Address() {
     if (!portfolio) return [];
 
     return portfolio.atomicals.filter((atomical) => {
-      if (atomicalType === "token") {
+      if (tabType === "token") {
         return atomical.atomical.type === "FT";
-      } else if (atomicalType === "realm") {
+      } else if (tabType === "realm") {
         return [
           "realm",
           "request_realm",
           "subrealm",
           "request_subrealm",
         ].includes(atomical.atomical.subtype);
-      } else if (atomicalType === "dmitem") {
+      } else if (tabType === "dmitem") {
         return ["dmitem", "request_dmitem"].includes(atomical.atomical.subtype);
-      } else if (atomicalType === "listings") {
+      } else if (tabType === "listings") {
         return atomical.atomical.listed;
-      } else if (atomicalType === "all") {
+      } else if (tabType === "all") {
         return true;
       }
     });
-  }, [portfolio, atomicalType]);
+  }, [portfolio, tabType]);
 
   const arc20TokenBalance = useMemo(() => {
-    if (!portfolio || atomicalType !== "token") return {};
+    if (!portfolio || tabType !== "token") return {};
 
     return portfolio.atomicals.reduce<{
       [token: string]: {
@@ -137,7 +150,7 @@ export default function Address() {
 
       return acc;
     }, {});
-  }, [portfolio, atomicalType]);
+  }, [portfolio, tabType]);
 
   const unlist = async (
     atomical: AccountAtomical,
@@ -164,13 +177,58 @@ export default function Address() {
     }
   };
 
-  useEffect(() => {
-    if (!account || account.address !== address) {
-      if (atomicalType === "listings") {
-        setAtomicalType("all");
-      }
+  const renderButton = (
+    atomical: AccountAtomical,
+    utxo: { txid: string; value: number; vout: number },
+  ) => {
+    if (!account || account.address !== address) return null;
+
+    if (atomical.type === "FT") {
+      return (
+        <div className="flex h-10 items-center justify-center text-sm text-secondary">
+          FT Not Supported
+        </div>
+      );
     }
-  }, [account]);
+
+    if (atomical.listed) {
+      return (
+        <div className="flex w-full space-x-2">
+          <Button
+            disabled={loading}
+            onClick={() => unlist(atomical, utxo)}
+            className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme"
+          >
+            Unlist
+          </Button>
+          <Button
+            className="w-full"
+            onClick={() => setListData({ atomical, utxo })}
+          >
+            Edit
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex w-full space-x-2">
+        <Button
+          className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme"
+          onClick={() => setTransferNFTData({ atomical, utxo })}
+        >
+          Transfer
+        </Button>
+        <Button
+          className="w-full"
+          disabled={!["realm", "dmitem"].includes(atomical.subtype)}
+          onClick={() => setListData({ atomical, utxo })}
+        >
+          List
+        </Button>
+      </div>
+    );
+  };
 
   if (!portfolio) {
     return (
@@ -212,8 +270,13 @@ export default function Address() {
         </div>
         <Tabs
           className="border-b"
-          value={atomicalType}
-          onValueChange={setAtomicalType}
+          value={tabType}
+          onValueChange={(value) => {
+            updateSearchParams(
+              { type: value },
+              { action: "push", scroll: false },
+            );
+          }}
         >
           <TabsList className="flex w-full justify-start">
             {TabItems.map((tab) => (
@@ -293,8 +356,13 @@ export default function Address() {
         </div>
         <Tabs
           className="border-b"
-          value={atomicalType}
-          onValueChange={setAtomicalType}
+          value={tabType}
+          onValueChange={(value) => {
+            updateSearchParams(
+              { type: value },
+              { action: "push", scroll: false },
+            );
+          }}
         >
           <TabsList className="flex w-full justify-start">
             {TabItems.map((tab) => (
@@ -306,18 +374,10 @@ export default function Address() {
                 {tab.label}
               </TabsTrigger>
             ))}
-            {account && account.address === address && (
-              <TabsTrigger
-                className="h-10 bg-transparent text-primary hover:text-theme-hover data-[state=active]:border-b-2 data-[state=active]:border-b-theme data-[state=active]:bg-transparent data-[state=active]:text-theme"
-                value="listings"
-              >
-                Listings
-              </TabsTrigger>
-            )}
           </TabsList>
         </Tabs>
         <div className="w-full space-y-4">
-          {atomicalType === "token" && (
+          {tabType === "token" && Object.keys(arc20TokenBalance).length > 0 && (
             <div className="grid grid-cols-2 gap-4">
               {Object.entries(arc20TokenBalance).map(([token, balance]) => (
                 <div
@@ -336,134 +396,142 @@ export default function Address() {
               ))}
             </div>
           )}
-          {sortedAtomicals.length > 0 ? (
+          {sortedAtomicals.length === 0 ? (
+            <EmptyTip />
+          ) : (
             <GridList>
-              {sortedAtomicals.map((atomical) => (
-                <div
-                  key={`${atomical.utxo.txid}:${atomical.utxo.vout}:${atomical.atomical.atomicalId}`}
-                  className="overflow-hidden rounded-md border shadow-md"
-                >
-                  <div className="relative flex aspect-square w-full items-center justify-center bg-primary text-white">
-                    {renderAddressPreview({
-                      atomicalId: atomical.atomical.atomicalId,
-                      subtype: atomical.atomical.subtype,
-                      payload: {
-                        realm:
-                          atomical.atomical.requestFullRealmName ||
-                          atomical.atomical.requestRealm,
-                        ticker: atomical.atomical.requestTicker,
-                        amount: atomical.utxo.value,
-                        arcs: atomical.atomical.isArcs,
-                        container: atomical.atomical.requestContainer,
-                        parentContainer: atomical.atomical.parentContainer,
-                      },
-                    })}
-                    <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">
-                      {atomical.atomical.type === "FT"
-                        ? "FT"
-                        : atomical.atomical.subtype?.toUpperCase() || "NFT"}
-                    </div>
-                    {atomical.atomical.listed &&
-                      address === account?.address && (
-                        <div className="absolute bottom-0 left-0 right-0 flex h-8 items-center justify-between bg-black/40 px-1.5 text-sm text-white">
-                          <div className="flex items-center space-x-1">
-                            <img
-                              src="/icons/btc.svg"
-                              alt="btc"
-                              className="h-5 w-5"
-                            />
-                            <div>
-                              {satsToBTC(atomical.atomical.listed.price, {
-                                keepTrailingZeros: true,
-                                digits: 8,
-                              })}
-                            </div>
-                          </div>
-                          <div className="text-secondary">
-                            {BTCPrice ? (
-                              <div>
-                                {`$${formatNumber(
-                                  parseFloat(
-                                    satsToBTC(atomical.atomical.listed.price),
-                                  ) * BTCPrice,
-                                )}`}
+              {tabType === "listings" && account?.address !== address
+                ? portfolio.offers.map((offer) => (
+                    <AtomicalOfferCard
+                      offer={{
+                        ...offer,
+                        lister: address,
+                        realm: offer.realm || "",
+                        dmitem: offer.dmitem || "",
+                        container: offer.container || "",
+                        description: offer.description || "",
+                      }}
+                      key={offer.id}
+                    >
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          if (!account) {
+                            setModalOpen(true);
+                            return;
+                          }
+                          setSelectedOffer({
+                            ...offer,
+                            lister: address,
+                            realm: offer.realm || "",
+                            dmitem: offer.dmitem || "",
+                            container: offer.container || "",
+                            description: offer.description || "",
+                          });
+                        }}
+                      >
+                        Buy Now
+                      </Button>
+                    </AtomicalOfferCard>
+                  ))
+                : sortedAtomicals.map((atomical) => (
+                    <div
+                      key={`${atomical.utxo.txid}:${atomical.utxo.vout}:${atomical.atomical.atomicalId}`}
+                      className="overflow-hidden rounded-md border shadow-md"
+                    >
+                      <div className="relative flex aspect-square w-full items-center justify-center bg-primary text-white">
+                        {renderAddressPreview({
+                          atomicalId: atomical.atomical.atomicalId,
+                          subtype: atomical.atomical.subtype,
+                          payload: {
+                            realm:
+                              atomical.atomical.requestFullRealmName ||
+                              atomical.atomical.requestRealm,
+                            ticker: atomical.atomical.requestTicker,
+                            amount: atomical.utxo.value,
+                            arcs: atomical.atomical.isArcs,
+                            container: atomical.atomical.requestContainer,
+                            parentContainer: atomical.atomical.parentContainer,
+                          },
+                        })}
+                        <div className="absolute left-2 top-2 rounded bg-theme px-1.5 text-sm text-white">
+                          {atomical.atomical.type === "FT"
+                            ? "FT"
+                            : atomical.atomical.subtype?.toUpperCase() || "NFT"}
+                        </div>
+                        {atomical.atomical.listed &&
+                          address === account?.address && (
+                            <div className="absolute bottom-0 left-0 right-0 flex h-8 items-center justify-between bg-black/40 px-1.5 text-sm text-white">
+                              <div className="flex items-center space-x-1">
+                                <img
+                                  src="/icons/btc.svg"
+                                  alt="btc"
+                                  className="h-5 w-5"
+                                />
+                                <div>
+                                  {satsToBTC(atomical.atomical.listed.price, {
+                                    keepTrailingZeros: true,
+                                    digits: 8,
+                                  })}
+                                </div>
                               </div>
-                            ) : (
-                              <div>$-</div>
-                            )}
+                              <div className="text-secondary">
+                                {BTCPrice ? (
+                                  <div>
+                                    {`$${formatNumber(
+                                      parseFloat(
+                                        satsToBTC(
+                                          atomical.atomical.listed.price,
+                                        ),
+                                      ) * BTCPrice,
+                                    )}`}
+                                  </div>
+                                ) : (
+                                  <div>$-</div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        <div className="absolute right-2 top-2 flex items-center justify-center space-x-1 bg-transparent">
+                          <div
+                            className={cn("text-sm text-[#a1a1aa]", {
+                              hidden:
+                                !atomical.atomical.listed ||
+                                atomical.atomical.listed?.favorAddress
+                                  .length === 0 ||
+                                account?.address !== address,
+                            })}
+                          >
+                            {atomical.atomical.listed?.favorAddress.length}
+                          </div>
+                          <Heart
+                            fill="#a1a1aa"
+                            className={cn("h-6 w-6 text-[#a1a1aa]", {
+                              hidden: account?.address !== address,
+                            })}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex w-full flex-col items-center space-y-4 border-t bg-secondary px-3 py-2">
+                        <div className="flex w-full items-center justify-between text-sm">
+                          <a
+                            className="transition-colors hover:text-theme"
+                            href={`/atomical/${atomical.atomical.atomicalId}`}
+                            target="_blank"
+                          >
+                            #{atomical.atomical.atomicalNumber}
+                          </a>
+                          <div>
+                            <PunycodeString
+                              children={renderName(atomical.atomical)}
+                            />
                           </div>
                         </div>
-                      )}
-                  </div>
-                  <div className="flex w-full flex-col items-center space-y-4 border-t bg-secondary px-3 py-2">
-                    <div className="flex w-full items-center justify-between text-sm">
-                      <a
-                        className="transition-colors hover:text-theme"
-                        href={`/atomical/${atomical.atomical.atomicalId}`}
-                        target="_blank"
-                      >
-                        #{atomical.atomical.atomicalNumber}
-                      </a>
-                      <div>
-                        <PunycodeString
-                          children={renderName(atomical.atomical)}
-                        />
+                        {renderButton(atomical.atomical, atomical.utxo)}
                       </div>
                     </div>
-                    {account && account.address === address && (
-                      <div className="flex w-full space-x-2">
-                        {atomical.atomical.listed ? (
-                          <>
-                            <Button
-                              disabled={loading}
-                              onClick={() =>
-                                unlist(atomical.atomical, atomical.utxo)
-                              }
-                              className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme"
-                            >
-                              Unlist
-                            </Button>
-                            <Button
-                              className="w-full"
-                              onClick={() => setListData({ ...atomical })}
-                            >
-                              Edit
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              disabled={atomical.atomical.type === "FT"}
-                              className="w-full border bg-primary text-primary transition-colors hover:border-theme hover:text-theme"
-                              onClick={() => {
-                                if (atomical.atomical.type === "NFT") {
-                                  setTransferNFTData({ ...atomical });
-                                }
-                              }}
-                            >
-                              Transfer
-                            </Button>
-                            <Button
-                              className="w-full"
-                              disabled={
-                                !["realm", "dmitem"].includes(
-                                  atomical.atomical.subtype,
-                                )
-                              }
-                              onClick={() => setListData({ ...atomical })}
-                            >
-                              List
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                  ))}
             </GridList>
-          ) : (
-            <EmptyTip />
           )}
         </div>
       </div>
@@ -482,6 +550,15 @@ export default function Address() {
           refreshPortfolio();
         }}
       />
+      <AtomicalBuyModal
+        offer={selectedOffer}
+        onClose={() => {
+          if (!portfolioValidating) {
+            refreshPortfolio();
+          }
+          setSelectedOffer(undefined);
+        }}
+      />
     </>
   );
 }
@@ -489,22 +566,45 @@ export default function Address() {
 const AddressMessage: React.FC<{
   address: string;
 }> = ({ address }) => {
+  const { copyToClipboard } = useClipboard();
+  const { toast } = useToast();
+
+  const copyShareLink = async () => {
+    const url = window.location;
+    await copyToClipboard(`${url.hostname}${url.pathname}?type=listings`);
+    toast({
+      title: "Share link copied",
+      description: `You can paste this link to share your listings with others: ${url.hostname}${url.pathname}?type=listings`,
+      duration: 3000,
+    });
+  };
+
   return (
-    <div className="flex items-center space-x-2">
-      <div className="text-2xl text-primary">{formatAddress(address, 6)}</div>
-      <CopyButton text={address} />
-      <a
-        href={`https://mempool.space/address/${address}`}
-        target="_blank"
-        rel="noreferrer"
-        className="flex h-5 w-5 overflow-hidden rounded-md"
-      >
-        <img
-          src="/icons/mempool.svg"
-          alt="Mempool"
-          className="h-full w-full"
-        />
-      </a>
+    <div className="flex flex-col space-y-4">
+      <div className="flex items-center space-x-2">
+        <div className="text-2xl text-primary">{formatAddress(address, 6)}</div>
+        <CopyButton text={address} />
+      </div>
+      <div className="flex items-center space-x-2">
+        <a
+          href={`https://mempool.space/address/${address}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex h-5 w-5 overflow-hidden rounded-md"
+        >
+          <img
+            src="/icons/mempool.svg"
+            alt="Mempool"
+            className="h-full w-full"
+          />
+        </a>
+        <div
+          onClick={() => copyShareLink()}
+          className="h-5 w-5 cursor-pointer overflow-hidden rounded-md text-primary transition-colors hover:text-theme"
+        >
+          <Share2 className="h-full w-full" />
+        </div>
+      </div>
     </div>
   );
 };

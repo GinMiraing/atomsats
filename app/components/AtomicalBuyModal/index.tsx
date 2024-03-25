@@ -27,6 +27,7 @@ import {
 } from "../Form";
 import GasFeeSelector from "../GasFeeSelector";
 import { Input } from "../Input";
+import MinidenticonImg from "../MinidenticonImg";
 import PunycodeString from "../PunycodeString";
 import { useWallet } from "../Wallet/hooks";
 
@@ -226,7 +227,7 @@ const AtomicalBuyModal: React.FC<{
                 </div>
               </div>
             </DrawerHeader>
-            <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
+            <div className="relative mx-auto flex w-48 items-center justify-center overflow-hidden rounded-md bg-card lg:w-64">
               <div className="flex aspect-square w-full items-center justify-center">
                 {offer &&
                   renderAddressPreview({
@@ -243,56 +244,84 @@ const AtomicalBuyModal: React.FC<{
               </div>
             </div>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="flex flex-col space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="receiver"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Atomical Receiver</FormLabel>
-                        <FormControl>
-                          <div className="relative flex items-center">
-                            <Input
-                              className="pr-10"
-                              {...field}
-                            />
-                            <X
-                              onClick={() => form.setValue("receiver", "")}
-                              className={cn(
-                                "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
-                                {
-                                  hidden: !watchReceiver,
-                                },
-                              )}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <form
+                className="space-y-4"
+                onSubmit={form.handleSubmit(onSubmit)}
+              >
+                {offer && offer.favorAddress.length > 0 && (
                   <FormItem>
-                    <FormLabel>Gas Fee</FormLabel>
-                    <GasFeeSelector
-                      feeRate={watchGasFee}
-                      onFeeRateChange={(value) =>
-                        form.setValue("gasFeeRate", value)
-                      }
-                    />
+                    <FormLabel>Like This Listing</FormLabel>
+                    <div className="box-content max-h-[10vh] w-full overflow-y-scroll py-2 pr-1">
+                      <div className="flex w-full flex-col space-y-4 rounded-md bg-card px-3 py-2">
+                        {offer.favorAddress.map((address) => (
+                          <div
+                            key={address}
+                            className="flex items-center space-x-2"
+                          >
+                            <div className="h-8 w-8">
+                              <MinidenticonImg
+                                username={address}
+                                saturation={90}
+                              />
+                            </div>
+                            <div>{formatAddress(address, 6)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </FormItem>
-                  <div className="flex flex-col items-end justify-end space-y-2">
-                    <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
-                    <div className="text-sm">{`Service Fee( 1.5%, Min 1000 ): ${serviceFee} sats`}</div>
-                    <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
+                )}
+                <div className="box-content max-h-[20vh] w-full overflow-y-scroll py-2 pr-1">
+                  <div className="flex w-full flex-col space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="receiver"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Atomical Receiver</FormLabel>
+                          <FormControl>
+                            <div className="relative flex items-center">
+                              <Input
+                                className="pr-10"
+                                {...field}
+                              />
+                              <X
+                                onClick={() => form.setValue("receiver", "")}
+                                className={cn(
+                                  "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
+                                  {
+                                    hidden: !watchReceiver,
+                                  },
+                                )}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormItem>
+                      <FormLabel>Gas Fee</FormLabel>
+                      <GasFeeSelector
+                        feeRate={watchGasFee}
+                        onFeeRateChange={(value) =>
+                          form.setValue("gasFeeRate", value)
+                        }
+                      />
+                    </FormItem>
                   </div>
+                </div>
+                <div className="mt-4 flex flex-col items-end justify-end space-y-2">
+                  <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
+                  <div className="text-sm">{`Service Fee( 1.5%, Min 1000 ): ${serviceFee} sats`}</div>
+                  <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
                 </div>
                 <Button
                   type="submit"
                   disabled={
                     loading || !offerValid || account?.address === offer?.lister
                   }
-                  className="mt-8 flex w-full items-center justify-center"
+                  className="mt-4 flex w-full items-center justify-center"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -369,7 +398,7 @@ const AtomicalBuyModal: React.FC<{
               </div>
             </div>
           </DialogHeader>
-          <div className="relative mx-auto flex w-64 items-center justify-center overflow-hidden rounded-md bg-card">
+          <div className="relative mx-auto flex w-48 items-center justify-center overflow-hidden rounded-md bg-card lg:w-64">
             <div className="flex aspect-square w-full items-center justify-center">
               {offer &&
                 renderAddressPreview({
@@ -385,56 +414,84 @@ const AtomicalBuyModal: React.FC<{
             </div>
           </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="flex flex-col space-y-4">
-                <FormField
-                  control={form.control}
-                  name="receiver"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Atomical Receiver</FormLabel>
-                      <FormControl>
-                        <div className="relative flex items-center">
-                          <Input
-                            className="pr-10"
-                            {...field}
-                          />
-                          <X
-                            onClick={() => form.setValue("receiver", "")}
-                            className={cn(
-                              "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
-                              {
-                                hidden: !watchReceiver,
-                              },
-                            )}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <form
+              className="space-y-4"
+              onSubmit={form.handleSubmit(onSubmit)}
+            >
+              {offer && offer.favorAddress.length > 0 && (
                 <FormItem>
-                  <FormLabel>Gas Fee</FormLabel>
-                  <GasFeeSelector
-                    feeRate={watchGasFee}
-                    onFeeRateChange={(value) =>
-                      form.setValue("gasFeeRate", value)
-                    }
-                  />
+                  <FormLabel>Like This Listing</FormLabel>
+                  <div className="box-content max-h-[10vh] w-full overflow-y-scroll py-2 pr-1">
+                    <div className="flex w-full flex-col space-y-4 rounded-md bg-card px-3 py-2">
+                      {offer.favorAddress.map((address) => (
+                        <div
+                          key={address}
+                          className="flex items-center space-x-2"
+                        >
+                          <div className="h-8 w-8">
+                            <MinidenticonImg
+                              username={address}
+                              saturation={90}
+                            />
+                          </div>
+                          <div>{formatAddress(address, 6)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </FormItem>
-                <div className="flex flex-col items-end justify-end space-y-2">
-                  <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
-                  <div className="text-sm">{`Service Fee( 1.5%, Min 1000 ): ${serviceFee} sats`}</div>
-                  <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
+              )}
+              <div className="box-content max-h-[20vh] w-full overflow-y-scroll py-2 pr-1">
+                <div className="flex flex-col space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="receiver"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Atomical Receiver</FormLabel>
+                        <FormControl>
+                          <div className="relative flex items-center">
+                            <Input
+                              className="pr-10"
+                              {...field}
+                            />
+                            <X
+                              onClick={() => form.setValue("receiver", "")}
+                              className={cn(
+                                "absolute right-3 h-5 w-5 cursor-pointer text-secondary transition-colors hover:text-theme",
+                                {
+                                  hidden: !watchReceiver,
+                                },
+                              )}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormItem>
+                    <FormLabel>Gas Fee</FormLabel>
+                    <GasFeeSelector
+                      feeRate={watchGasFee}
+                      onFeeRateChange={(value) =>
+                        form.setValue("gasFeeRate", value)
+                      }
+                    />
+                  </FormItem>
                 </div>
+              </div>
+              <div className="mt-4 flex flex-col items-end justify-end space-y-2">
+                <div className="text-sm">{`Offer Price: ${offer && offer.price} sats`}</div>
+                <div className="text-sm">{`Service Fee( 1.5%, Min 1000 ): ${serviceFee} sats`}</div>
+                <div className="text-green-400">{`Total Cost: ${totalCost} sats`}</div>
               </div>
               <Button
                 type="submit"
                 disabled={
                   loading || !offerValid || account?.address === offer?.lister
                 }
-                className="mt-8 flex w-full items-center justify-center"
+                className="mt-4 flex w-full items-center justify-center"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

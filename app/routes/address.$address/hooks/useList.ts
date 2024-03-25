@@ -15,6 +15,7 @@ export const useListAtomical = () => {
     atomical: AccountAtomical;
     price: number;
     receiver: string;
+    description?: string;
     utxo: {
       txid: string;
       vout: number;
@@ -71,6 +72,7 @@ export const useListAtomical = () => {
       price: data.price,
       listAccount: account.address,
       receiver: data.receiver,
+      description: data.description,
       unsignedPsbt: unsignedPsbtHex,
       signedPsbt,
       tx: data.utxo.txid,

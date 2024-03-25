@@ -16,5 +16,21 @@ export type AccountAtomical = {
   listed?: {
     price: number;
     receiver: string;
+    description: string;
+    favorAddress: string[];
   };
+};
+
+export type AccountOffer = {
+  id: number;
+  atomicalId: string;
+  atomicalNumber: number;
+  type: string;
+  price: number;
+  receiver: string;
+  favorAddress: string[];
+  realm?: string;
+  dmitem?: string;
+  container?: string;
+  description?: string;
 };
