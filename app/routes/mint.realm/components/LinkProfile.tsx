@@ -104,15 +104,9 @@ const LinkProfile: React.FC<{
         const realmAddress = detectScriptToAddressType(
           realm.result.location_info[0].script,
         );
-        const profileAddress = detectScriptToAddressType(
-          profile.result.location_info[0].script,
-        );
 
-        if (
-          realmAddress !== account.address ||
-          profileAddress !== account.address
-        ) {
-          throw new Error("Your not own this atomical");
+        if (realmAddress !== account.address) {
+          throw new Error("Your not own this realm");
         }
       } catch (e) {
         throw e;
