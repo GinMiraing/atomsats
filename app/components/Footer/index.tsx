@@ -12,6 +12,14 @@ const Footer: React.FC = () => {
         >
           Telegram
         </a>
+        <a
+          href="https://twitter.com/atomsats"
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary transition-colors hover:text-theme"
+        >
+          Twitter
+        </a>
       </div>
     </footer>
   );

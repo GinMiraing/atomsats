@@ -148,7 +148,10 @@ const AtomicalOfferCard: React.FC<{
           <div className="grow-0">
             <HoverCard>
               <HoverCardTrigger asChild>
-                <Button disabled={!offer.description}>
+                <Button
+                  variant="primary"
+                  disabled={!offer.description}
+                >
                   <ScrollText className="h-5 w-5" />
                 </Button>
               </HoverCardTrigger>
