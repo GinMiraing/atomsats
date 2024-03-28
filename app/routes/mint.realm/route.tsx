@@ -263,6 +263,17 @@ export default function MintRealm() {
 
       const revealTxId = await pushTx(account.network, revealTxHex);
 
+      const outputsLength = Psbt.fromHex(signedCommitPsbt).txOutputs.length;
+
+      if (outputsLength > 1) {
+        window.localStorage.setItem(
+          `safeUTXOs-${account.address}`,
+          JSON.stringify({
+            [commitTxId]: 1,
+          }),
+        );
+      }
+
       setStoreTxId({
         commit: commitTxId,
         reveal: revealTxId,
