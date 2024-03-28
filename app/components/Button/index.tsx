@@ -10,6 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-theme text-white hover:opacity-80 transition-opacity",
+        primary: "bg-card text-white hover:opacity-80 transition-opacity",
       },
       size: {
         default: "h-10 px-4 py-2",

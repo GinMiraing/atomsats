@@ -1,5 +1,4 @@
 import AxiosInstance from "@/lib/axios";
-import { UTXO } from "@/lib/types";
 import { detectAddressTypeToScripthash } from "@/lib/utils/address-helpers";
 
 import { ElectrumApiInterface } from "./electrum-api.interface";
@@ -387,7 +386,14 @@ export class ElectrumApi implements ElectrumApiInterface {
     ]);
   }
 
-  public atomicalsGetByRealm(realm: string): Promise<any> {
+  public atomicalsGetByRealm(realm: string): Promise<{
+    result: {
+      atomical_id?: string;
+      candidate_atomical_id?: string;
+      status?: string;
+      type: "realm";
+    };
+  }> {
     return this.call("blockchain.atomicals.get_by_realm", [realm]);
   }
 

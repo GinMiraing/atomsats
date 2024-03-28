@@ -90,3 +90,10 @@ export type AccountInfo = {
   pubkey: Buffer;
   script: Buffer;
 };
+
+export type BitworkInfo = {
+  inputBitwork: string;
+  hexBitwork: string;
+  prefix: string;
+  ext: number | undefined;
+};

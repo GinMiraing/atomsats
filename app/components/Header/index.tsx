@@ -40,7 +40,7 @@ const Navigations = [
     name: "Mint",
     link: "/mint",
     icon: <Pickaxe className="h-6 w-6" />,
-    disable: true,
+    disable: false,
   },
   {
     name: "Explorer",
